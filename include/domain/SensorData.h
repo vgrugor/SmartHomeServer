@@ -4,10 +4,13 @@
     #include <unordered_map>
     #include <string>
     #include "SensorType.h"
+    #include "presentation/EventNotifier.h"
+    #include "domain/SensorType.h"
 
     class SensorData {
         private:
             std::unordered_map<SensorType, float> data;
+            void  pushEvent(const SensorType& key, float value);
 
         public:
             void setValue(const SensorType& key, float value);

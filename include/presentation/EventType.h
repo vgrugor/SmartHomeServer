@@ -7,17 +7,12 @@
         WIFI_TRY_CONNECT,
         WIFI_CONNECTED,
         WIFI_RECONNECT,
-        
-        //temperature events
-        READ_TEMPERATURE,
-        SEND_TEMPERATURE,
+
+        //data events
+        PARAM_SAVED,
 
         //web socket events
         WEB_SOCKET_NOTIFY_CLIENT,
-
-        //timer events
-        TIMER_SET,
-        TIMER_APPLIED,
     };
 
 #endif

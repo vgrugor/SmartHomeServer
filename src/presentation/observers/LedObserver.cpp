@@ -17,25 +17,5 @@ void LedObserver::update(EventType eventType, const String& message) {
             break;
         case EventType::WIFI_RECONNECT: 
             break;
-        
-        //temperature events
-        case EventType::READ_TEMPERATURE: 
-            this->externalLedActuator.setState(HIGH);
-            delay(100);
-            this->externalLedActuator.setState(LOW);
-            delay(100);
-            
-            break;
-        case EventType::SEND_TEMPERATURE:
-            this->externalLedActuator.setState(HIGH);
-            delay(1000);
-            this->externalLedActuator.setState(LOW);
-            delay(1000);
-            this->externalLedActuator.setState(HIGH);
-            delay(1000);
-            this->externalLedActuator.setState(LOW);
-            delay(1000);
-
-            break;
     }
 }

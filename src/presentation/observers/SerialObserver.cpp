@@ -10,13 +10,8 @@ void SerialObserver::update(EventType eventType, const String& message) {
         case EventType::WIFI_CONNECTED: text = "WiFi connected"; break;
         case EventType::WIFI_RECONNECT: text = "WiFi reconnect"; break;
         
-        //temperature events
-        case EventType::READ_TEMPERATURE: text = "Read temperature data. Temperature: " + message + "°C"; break;
-        case EventType::SEND_TEMPERATURE: text = "Send temperature data. Temperature: " + message + "°C"; break;
-
-        //timer events
-        case EventType::TIMER_SET: text = "Timer set"; break;
-        case EventType::TIMER_APPLIED: text = "Timer applied"; break;
+        //data events
+        case EventType::PARAM_SAVED: text = message; break;
     }
 
     Serial.println(text);
