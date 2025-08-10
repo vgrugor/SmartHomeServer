@@ -5,6 +5,7 @@
     #include <map>
     #include <Arduino_JSON.h>
     #include "domain/SensorData.h"
+    #include "domain/SensorType.h"
 
     class WsDataTransformer {
         public:
