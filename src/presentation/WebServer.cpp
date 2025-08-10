@@ -45,6 +45,8 @@ void WebServer::handleHouseTemperature(AsyncWebServerRequest* request) {
         this->sensorData.setValue(SensorType::HOUSE_TEMP, temp->value().toFloat());
 
         request->send(200, "text/plain", "Temperature received");
+
+        EventNotifier::getInstance().notifyObservers(EventType::WEB_SOCKET_NOTIFY_CLIENT);
     } else {
         request->send(400, "text/plain", "Missing temperature value");
     }
@@ -57,6 +59,8 @@ void WebServer::handleOutdoorTemperature(AsyncWebServerRequest* request) {
         this->sensorData.setValue(SensorType::OUTDOOR_TEMP, temp->value().toFloat());
 
         request->send(200, "text/plain", "Temperature received");
+
+        EventNotifier::getInstance().notifyObservers(EventType::WEB_SOCKET_NOTIFY_CLIENT);
     } else {
         request->send(400, "text/plain", "Missing temperature value");
     }
@@ -75,6 +79,8 @@ void WebServer::handleShowerUpdate(AsyncWebServerRequest* request) {
         this->sensorData.setValue(SensorType::BATTERY_PERCENT, percent->value().toFloat());
 
         request->send(200, "text/plain", "Data received");
+
+        EventNotifier::getInstance().notifyObservers(EventType::WEB_SOCKET_NOTIFY_CLIENT);
     } else {
         request->send(400, "text/plain", "Missing temperature value");
     }
