@@ -39,7 +39,7 @@ void WebServer::handleRoot(AsyncWebServerRequest* request) {
 }
 
 void WebServer::handleHouseTemperature(AsyncWebServerRequest* request) {
-    if (request->hasParam("value")) {
+    if (request->hasParam(TEMPERATURE_HOUSE_PARAM_NAME)) {
         const AsyncWebParameter* temp = request->getParam(TEMPERATURE_HOUSE_PARAM_NAME);
 
         this->sensorData.setValue(SensorType::HOUSE_TEMP, temp->value().toFloat());
@@ -53,7 +53,7 @@ void WebServer::handleHouseTemperature(AsyncWebServerRequest* request) {
 }
 
 void WebServer::handleOutdoorTemperature(AsyncWebServerRequest* request) {
-    if (request->hasParam("value")) {
+    if (request->hasParam(TEMPERATURE_OUTDOOR_PARAM_NAME)) {
         const AsyncWebParameter* temp = request->getParam(TEMPERATURE_OUTDOOR_PARAM_NAME);
 
         this->sensorData.setValue(SensorType::OUTDOOR_TEMP, temp->value().toFloat());
@@ -67,7 +67,12 @@ void WebServer::handleOutdoorTemperature(AsyncWebServerRequest* request) {
 }
 
 void WebServer::handleShowerUpdate(AsyncWebServerRequest* request) {
-    if (request->hasParam("value")) {
+    if (
+        request->hasParam(TEMPERATURE_WATER_SHOWER_PARAM_NAME)
+        && request->hasParam(VOLUME_WATER_SHOWER_PARAM_NAME)
+        && request->hasParam(BATTERY_VOLTAGE_SHOWER_PARAM_NAME)
+        && request->hasParam(BATTERY_PERCENT_SHOWER_PARAM_NAME)
+    ) {
         const AsyncWebParameter* temp = request->getParam(TEMPERATURE_WATER_SHOWER_PARAM_NAME);
         const AsyncWebParameter* liter = request->getParam(VOLUME_WATER_SHOWER_PARAM_NAME);
         const AsyncWebParameter* voltage = request->getParam(BATTERY_VOLTAGE_SHOWER_PARAM_NAME);

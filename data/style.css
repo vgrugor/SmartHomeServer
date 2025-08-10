@@ -1,9 +1,135 @@
-body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background-color: #f4f4f4; }
-.content { max-width: 800px; margin: auto; }
-.tabs { display: flex; justify-content: center; margin-bottom: 20px; }
-.tab { padding: 10px 20px; margin: 0 5px; background-color: #f0f0f0; text-decoration: none; color: #333; border-radius: 5px; }
-.tab.active { background-color: #4CAF50; color: white; }
-.row { display: flex; justify-content: center; margin-bottom: 20px; }
-.column-1 { background-color: white; padding: 20px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); width: 100%; text-align: center; }
-.card-title { font-size: 1.2em; margin-bottom: 10px; }
-.state { margin: 10px 0; font-size: 1em; }
+/*  Complete project details: https://randomnerdtutorials.com/esp8266-nodemcu-web-server-websocket-sliders/  */
+
+html {
+    font-family: Arial, Helvetica, sans-serif;
+    display: inline-block;
+    text-align: center;
+  }
+  h1 {
+    font-size: 1.8rem;
+    color: white;
+  }
+  p {
+    font-size: 1.4rem;
+  }
+  .topnav {
+    overflow: hidden;
+    background-color: #0A1128;
+  }
+  body {
+    margin: 0;
+    background-color: aquamarine;
+  }
+  .content {
+    padding: 30px;
+  }
+  .card-grid {
+    max-width: 500px;
+    margin: 0 auto;
+    display: grid;
+    grid-gap: 2rem;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  }
+  .card {
+    background-color: white;
+    box-shadow: 2px 2px 12px 1px rgba(140,140,140,.5);
+  }
+  .card-title {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #034078
+  }
+  .state {
+    font-size: 1.2rem;
+    vertical-align: middle ;
+    color:#1282A2;
+  }
+  .slider {
+    -webkit-appearance: none;
+    margin: 0 auto;
+    width: 100%;
+    height: 15px;
+    border-radius: 10px;
+    background: #FFD65C;
+    outline: none;
+  }
+  .slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: #034078;
+    cursor: pointer;
+  }
+  .slider::-moz-range-thumb {
+    width: 30px;
+    height: 30px;
+    border-radius: 50% ;
+    background: #034078;
+    cursor: pointer;
+  }
+
+  .row {
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    max-width: 500px;
+    margin: 5px auto;
+    background-color: white;
+    box-shadow: 2px 2px 12px 1px rgba(140,140,140,.5);
+  }
+  
+  .column {
+    flex: 33.33%;
+  }
+
+  .column-1 {
+    flex: 100%;
+  }
+
+  .switch {
+    padding-left: 5%;
+    padding-right: 5%;
+  }
+
+  .state {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .state img {
+      vertical-align: middle;
+      margin-right: 10px; /* Дополнительный отступ, если нужен */
+  }
+
+  .slider-vertical {
+    width: 15px;
+    height: 200px;
+    appearance: none;
+    background: #FFD65C;
+    -webkit-appearance: slider-vertical;
+  }
+  
+  .tab-container {
+            display: flex;
+            background-color: #f1f1f1;
+            border-bottom: 1px solid #ddd;
+        }
+  .tab {
+      padding: 10px 20px;
+      cursor: pointer;
+      background-color: #e0e0e0;
+      border: 1px solid #ccc;
+      border-bottom: none;
+      border-radius: 5px 5px 0 0;
+  }
+  .tab.active {
+      background-color: #FFD65C;
+      color: white;
+      font-weight: bold;
+  }
+  .tab:hover:not(.active) {
+      background-color: #ddd;
+  }

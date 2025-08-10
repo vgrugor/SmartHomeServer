@@ -41,9 +41,7 @@ void WebSocket::handleMessage(void* arg, uint8_t* data, size_t len) {
         data[len] = 0;
         String message = (char*)data;
 
-        if (this->wsMessageHandler.handle(message)) {
-            this->notifyClients();
-        }
+        this->notifyClients();
     }
 }
 

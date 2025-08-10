@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Сервер даних</title>
+    <title>Сервер</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta charset="UTF-8">
     <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate">
@@ -14,40 +14,45 @@
     <div id="connection-status" style="background-color: red; color: white; text-align: center; padding: 10px; display: none;">
         ⚠️ Відсутнє з'єднання з сервером!
     </div>
-    <div class="tabs">
-        <a href="http://192.168.1.100" class="tab">Контроллер 1</a>
-        <a href="http://192.168.1.101" class="tab">Контроллер 2</a>
-        <a href="http://192.168.1.102" class="tab">Измеритель воды</a>
-        <a href="#" class="tab active">Сервер</a>
-    </div>
     <div class="content">
         <div class="row">
+            <div class="tab-container">
+                <div class="tab active" onclick="window.location.href='http://192.168.1.200'">Головна</div>
+                <div class="tab" onclick="window.location.href='http://192.168.1.201'">Освітлення в будинку</div>
+                <div class="tab" onclick="window.location.href='http://192.168.1.202'">Освітлення на вулиці</div>
+            </div>
+        </div>
+        <div class="row">
             <div class="column-1">
-                <p class="card-title">Температура</p>
+                <p class="card-title">Температура:</p>
                 <p class="state">
                     <img src="outdoor.png" width="30px" height="30px">
-                    Контроллер 1: <span id="temp1">0</span> &deg;C
+                    <span id="sliderValue1"></span> &deg;C
                 </p>
                 <p class="state">
-                    <img src="outdoor.png" width="30px" height="30px">
-                    Контроллер 2: <span id="temp2">0</span> &deg;C
+                    <img src="house.png" width="30px" height="30px">
+                    <span id="sliderValue2"></span> &deg;C
                 </p>
             </div>
         </div>
         <div class="row">
             <div class="column-1">
-                <p class="card-title">Вода</p>
+                <p class="card-title">Душ:</p>
                 <p class="state">
-                    <img src="water.png" width="30px" height="30px">
-                    Уровень: <span id="waterLevel">0</span> см
+                    <img src="temperature.svg" width="30px" height="30px">
+                    <span id="sliderValue3"></span> &deg;C
                 </p>
                 <p class="state">
-                    <img src="outdoor.png" width="30px" height="30px">
-                    Температура: <span id="waterTemp">0</span> &deg;C
+                    <img src="water-lewer.svg" width="30px" height="30px">
+                    <span id="sliderValue4"></span> л
                 </p>
                 <p class="state">
-                    <img src="battery.png" width="30px" height="30px">
-                    Батарея: <span id="batteryLevel">0</span> &percnt;
+                    <img src="battery.svg" width="30px" height="30px">
+                    <span id="sliderValue5"></span>v
+                </p>
+                <p class="state">
+                    <img src="battery.svg" width="30px" height="30px">
+                    <span id="sliderValue6"></span>%
                 </p>
             </div>
         </div>
