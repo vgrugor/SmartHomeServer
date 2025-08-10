@@ -3,16 +3,17 @@
 
     #include <unordered_map>
     #include <string>
+    #include "SensorType.h"
 
     class SensorData {
         private:
-            std::unordered_map<std::string, float> data;
+            std::unordered_map<SensorType, float> data;
 
         public:
-            void setValue(const std::string& key, float value);
-            float getValue(const std::string& key) const;
-            bool hasKey(const std::string& key) const;
-            void removeKey(const std::string& key);
+            void setValue(const SensorType& key, float value);
+            float getValue(const SensorType& key) const;
+            bool hasKey(const SensorType& key) const;
+            void removeKey(const SensorType& key);
             void clear();
     };
 

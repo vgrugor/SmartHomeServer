@@ -1,10 +1,10 @@
 #include "domain/SensorData.h"
 
-void SensorData::setValue(const std::string& key, float value) {
+void SensorData::setValue(const SensorType& key, float value) {
     data[key] = value;
 }
 
-float  SensorData::getValue(const std::string& key) const {
+float  SensorData::getValue(const SensorType& key) const {
     auto it = data.find(key);
 
     if (it != data.end()) {
@@ -14,11 +14,11 @@ float  SensorData::getValue(const std::string& key) const {
     return 0.0f;
 }
 
-bool  SensorData::hasKey(const std::string& key) const {
+bool  SensorData::hasKey(const SensorType& key) const {
     return data.find(key) != data.end();
 }
 
-void  SensorData::removeKey(const std::string& key) {
+void  SensorData::removeKey(const SensorType& key) {
     data.erase(key);
 }
 

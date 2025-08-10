@@ -43,6 +43,8 @@ void WebServer::handleHouseTemperature(AsyncWebServerRequest* request) {
         const AsyncWebParameter* temp = request->getParam(TEMPERATURE_HOUSE_PARAM_NAME);
         String temperatureValue = temp->value();
 
+        this->sensorData.setValue(SensorType::HOUSE_TEMP, temperatureValue.toFloat());
+
         request->send(200, "text/plain", "Temperature received: " + temperatureValue);
     } else {
         request->send(400, "text/plain", "Missing temperature value");
@@ -53,6 +55,8 @@ void WebServer::handleOutdoorTemperature(AsyncWebServerRequest* request) {
     if (request->hasParam("value")) {
         const AsyncWebParameter* temp = request->getParam(TEMPERATURE_OUTDOOR_PARAM_NAME);
         String temperatureValue = temp->value();
+
+        this->sensorData.setValue(SensorType::OUTDOOR_TEMP, temperatureValue.toFloat());
 
         request->send(200, "text/plain", "Temperature received");
     } else {
@@ -75,6 +79,9 @@ void WebServer::handleShowerUpdate(AsyncWebServerRequest* request) {
         String percentValue = percent->value();
 
         this->sensorData.setValue(SensorType::WATER_TEMP, temperatureValue.toFloat());
+        this->sensorData.setValue(SensorType::WATER_LEVEL_LITER, literValue.toFloat());
+        this->sensorData.setValue(SensorType::BATTERY_VOLTAGE, voltageValue.toFloat());
+        this->sensorData.setValue(SensorType::BATTERY_PERCENT, percentValue.toFloat());
 
         request->send(200, "text/plain", "Temperature received");
     } else {

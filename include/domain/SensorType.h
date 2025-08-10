@@ -5,8 +5,9 @@
         HOUSE_TEMP,
         OUTDOOR_TEMP,
         WATER_TEMP,
-        WATER_LEVEL,
-        BATTERY_LEVEL
+        WATER_LEVEL_LITER,
+        BATTERY_VOLTAGE,
+        BATTERY_PERCENT,
     };
 
 #endif
