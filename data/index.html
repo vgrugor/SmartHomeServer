@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Сервер даних</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="UTF-8">
+    <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="stylesheet" type="text/css" href="style.css">
+</head>
+<body>
+    <div id="connection-status" style="background-color: red; color: white; text-align: center; padding: 10px; display: none;">
+        ⚠️ Відсутнє з'єднання з сервером!
+    </div>
+    <div class="tabs">
+        <a href="http://192.168.1.100" class="tab">Контроллер 1</a>
+        <a href="http://192.168.1.101" class="tab">Контроллер 2</a>
+        <a href="http://192.168.1.102" class="tab">Измеритель воды</a>
+        <a href="#" class="tab active">Сервер</a>
+    </div>
+    <div class="content">
+        <div class="row">
+            <div class="column-1">
+                <p class="card-title">Температура</p>
+                <p class="state">
+                    <img src="outdoor.png" width="30px" height="30px">
+                    Контроллер 1: <span id="temp1">0</span> &deg;C
+                </p>
+                <p class="state">
+                    <img src="outdoor.png" width="30px" height="30px">
+                    Контроллер 2: <span id="temp2">0</span> &deg;C
+                </p>
+            </div>
+        </div>
+        <div class="row">
+            <div class="column-1">
+                <p class="card-title">Вода</p>
+                <p class="state">
+                    <img src="water.png" width="30px" height="30px">
+                    Уровень: <span id="waterLevel">0</span> см
+                </p>
+                <p class="state">
+                    <img src="outdoor.png" width="30px" height="30px">
+                    Температура: <span id="waterTemp">0</span> &deg;C
+                </p>
+                <p class="state">
+                    <img src="battery.png" width="30px" height="30px">
+                    Батарея: <span id="batteryLevel">0</span> &percnt;
+                </p>
+            </div>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
