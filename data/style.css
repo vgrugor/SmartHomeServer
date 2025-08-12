@@ -18,7 +18,7 @@ html {
   }
   body {
     margin: 0;
-    background-color: aquamarine;
+    background-color: rgb(52, 136, 245);
   }
   .content {
     padding: 30px;
@@ -112,19 +112,24 @@ html {
     -webkit-appearance: slider-vertical;
   }
   
-  .tab-container {
-            display: flex;
-            background-color: #f1f1f1;
-            border-bottom: 1px solid #ddd;
-        }
-  .tab {
-      padding: 10px 20px;
-      cursor: pointer;
-      background-color: #e0e0e0;
-      border: 1px solid #ccc;
-      border-bottom: none;
-      border-radius: 5px 5px 0 0;
-  }
+.tab-container {
+    display: flex;
+    flex-direction: column; /* вертикально */
+    gap: 5px; /* отступ между кнопками */
+    width: 100%; /* контейнер растягивается */
+}
+
+.tab {
+    padding: 10px;
+    background-color: #f0f0f0;
+    cursor: pointer;
+    text-align: center;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    transition: background-color 0.2s ease;
+    width: 100%; /* растянуть кнопку */
+    box-sizing: border-box; /* чтобы padding не выходил за ширину */
+}
   .tab.active {
       background-color: #FFD65C;
       color: white;

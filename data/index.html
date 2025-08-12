@@ -17,9 +17,9 @@
     <div class="content">
         <div class="row">
             <div class="tab-container">
-                <div class="tab active" onclick="window.location.href='http://192.168.1.200'">Головна</div>
-                <div class="tab" onclick="window.location.href='http://192.168.1.201'">Освітлення в будинку</div>
-                <div class="tab" onclick="window.location.href='http://192.168.1.202'">Освітлення на вулиці</div>
+                <div class="tab" data-ip="192.168.1.200" onclick="window.location.href='http://192.168.1.200'">Головна</div>
+                <div class="tab" data-ip="192.168.1.201" onclick="window.location.href='http://192.168.1.201'">Освітлення в будинку</div>
+                <div class="tab" data-ip="192.168.1.202" onclick="window.location.href='http://192.168.1.202'">Освітлення на вулиці</div>
             </div>
         </div>
         <div class="row">
@@ -48,11 +48,7 @@
                 </p>
                 <p class="state">
                     <img src="battery.svg" width="30px" height="30px">
-                    <span id="sliderValue5"></span>v
-                </p>
-                <p class="state">
-                    <img src="battery.svg" width="30px" height="30px">
-                    <span id="sliderValue6"></span>%
+                    <span id="sliderValue5"></span>v (<span id="sliderValue6"></span>%)
                 </p>
             </div>
         </div>

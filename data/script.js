@@ -5,6 +5,7 @@ var websocket;
 var isConnected = false;
 
 window.addEventListener('load', () => {
+    highlightActiveTab();
     checkOnlineStatus();
     initWebSocket();
 });
@@ -80,4 +81,17 @@ function onMessage(event) {
             slider.value = myObj[key];
         }
     }
+}
+
+function highlightActiveTab() {
+    const currentHost = window.location.hostname;
+    const tabs = document.querySelectorAll('.tab-container .tab');
+
+    tabs.forEach(tab => {
+        if (tab.dataset.ip === currentHost) {
+            tab.classList.add('active');
+        } else {
+            tab.classList.remove('active');
+        }
+    });
 }
