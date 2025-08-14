@@ -11,16 +11,19 @@ window.addEventListener('load', () => {
 });
 
 function checkOnlineStatus() {
-    fetch("/", { method: 'HEAD', cache: "no-store" })
-        .then(response => {
-            if (!response.ok) throw new Error();
-            console.log("ESP online");
-        })
-        .catch(err => {
-            document.getElementById("connection-status").style.display = "block";
-            document.getElementById("connection-status").innerText =
-                "⚠️ Контролер недоступний. Сторінка можливо збережена браузером офлайн.";
-        });
+    if (isConnected != true) {
+        fetch("/", { method: 'HEAD', cache: "no-store" })
+            .then(response => {
+                if (!response.ok) throw new Error();
+                console.log("ESP online");
+            })
+            .catch(err => {
+                document.getElementById("connection-status").style.display = "block";
+                document.getElementById("connection-status").innerText =
+                    "⚠️ Контролер недоступний. Сторінка можливо збережена браузером офлайн.";
+            }
+        );
+    }
 }
 
 function initWebSocket() {

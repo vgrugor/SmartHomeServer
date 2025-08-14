@@ -19,6 +19,10 @@ void WebServer::begin() {
         this->handleRoot(request);
     });
 
+    server.on("/", HTTP_HEAD, [this](AsyncWebServerRequest* request) {
+       request->send(200);
+    });
+
     server.on("/house/temperature", HTTP_GET, [this](AsyncWebServerRequest* request) {
         this->handleHouseTemperature(request);
     });
