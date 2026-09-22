@@ -15,8 +15,8 @@ Do not run that hardware-affecting command unless the user explicitly asks. Firm
 ## Browser/firmware contract
 
 - The WebSocket URL is `/ws` on the current host.
-- On connect, the browser sends `getValues`.
-- Incoming JSON keys are DOM element IDs: `sliderValue1` through `sliderValue6`.
+- On connect, the browser sends the exact, case-sensitive command `getValues`.
+- Incoming JSON keys are DOM element IDs: `sliderValue1` through `sliderValue6`; values are strings formatted to two decimal places.
 - The six values represent house temperature, outdoor temperature, shower-water temperature, water volume, battery voltage, and battery percentage in that order.
 - Navigation targets use fixed controller IP addresses. Treat changes to them as deployment configuration changes, not cosmetic edits.
 

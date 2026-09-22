@@ -1,20 +1,45 @@
 #include "application/WSDataTransformer.h"
+#include <cstdio>
 
 WsDataTransformer::WsDataTransformer(
-    SensorData& sensorData
+    const SensorData& sensorData
 ) : sensorData(sensorData)
 {}
 
-String WsDataTransformer::toJSON()
-{
-    JSONVar sliderValues;
+namespace {
+    void appendValue(
+        std::string& json,
+        const char* key,
+        float value,
+        bool prependComma
+    ) {
+        char number[48];
+        std::snprintf(number, sizeof(number), "%.2f", static_cast<double>(value));
 
-    sliderValues["sliderValue1"] = String(this->sensorData.getValue(SensorType::HOUSE_TEMP));
-    sliderValues["sliderValue2"] = String(this->sensorData.getValue(SensorType::OUTDOOR_TEMP));
-    sliderValues["sliderValue3"] = String(this->sensorData.getValue(SensorType::WATER_TEMP));
-    sliderValues["sliderValue4"] = String(this->sensorData.getValue(SensorType::WATER_LEVEL_LITER));
-    sliderValues["sliderValue5"] = String(this->sensorData.getValue(SensorType::BATTERY_VOLTAGE));
-    sliderValues["sliderValue6"] = String(this->sensorData.getValue(SensorType::BATTERY_PERCENT));
+        if (prependComma) {
+            json += ',';
+        }
 
-    return JSON.stringify(sliderValues);
+        json += '"';
+        json += key;
+        json += "\":\"";
+        json += number;
+        json += '"';
+    }
+}
+
+std::string WsDataTransformer::toJSON() const {
+    std::string json;
+    json.reserve(160);
+    json += '{';
+
+    appendValue(json, "sliderValue1", this->sensorData.getValue(SensorType::HOUSE_TEMP), false);
+    appendValue(json, "sliderValue2", this->sensorData.getValue(SensorType::OUTDOOR_TEMP), true);
+    appendValue(json, "sliderValue3", this->sensorData.getValue(SensorType::WATER_TEMP), true);
+    appendValue(json, "sliderValue4", this->sensorData.getValue(SensorType::WATER_LEVEL_LITER), true);
+    appendValue(json, "sliderValue5", this->sensorData.getValue(SensorType::BATTERY_VOLTAGE), true);
+    appendValue(json, "sliderValue6", this->sensorData.getValue(SensorType::BATTERY_PERCENT), true);
+
+    json += '}';
+    return json;
 }

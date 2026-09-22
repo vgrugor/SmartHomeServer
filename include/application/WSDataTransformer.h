@@ -1,19 +1,16 @@
 #ifndef WS_DATA_TRANSFORMER_H
-    #define WS_DATA_TRANSFORMER_H
+#define WS_DATA_TRANSFORMER_H
 
-    #include <Arduino.h>
-    #include <map>
-    #include <Arduino_JSON.h>
-    #include "domain/SensorData.h"
-    #include "domain/SensorType.h"
+#include <string>
+#include "domain/SensorData.h"
 
-    class WsDataTransformer {
-        public:
-            WsDataTransformer(SensorData& sensorData);
-            String toJSON();
+class WsDataTransformer {
+    public:
+        explicit WsDataTransformer(const SensorData& sensorData);
+        std::string toJSON() const;
 
-        private:
-            SensorData& sensorData;
-    };
+    private:
+        const SensorData& sensorData;
+};
 
-#endif
+#endif // WS_DATA_TRANSFORMER_H

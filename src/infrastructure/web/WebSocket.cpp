@@ -39,25 +39,25 @@ void WebSocket::handleEvent(AsyncWebSocket* server, AsyncWebSocketClient* client
 void WebSocket::handleMessage(AsyncWebSocketClient* client, void* arg, const uint8_t* data, size_t len) {
     AwsFrameInfo* info = (AwsFrameInfo*)arg;
     if (info->final && info->index == 0 && info->len == len && info->opcode == WS_TEXT) {
-        String message;
-        message.reserve(len);
-
-        for (size_t index = 0; index < len; index++) {
-            message += static_cast<char>(data[index]);
-        }
-
-        if (this->wsMessageHandler.handle(message) == WsMessageType::GET_VALUES) {
+        if (
+            this->wsMessageHandler.handle(
+                reinterpret_cast<const char*>(data),
+                len
+            ) == WsMessageType::GET_VALUES
+        ) {
             this->notifyClient(client);
         }
     }
 }
 
 void WebSocket::notifyClient(AsyncWebSocketClient* client) {
-    client->text(this->wsDataTransformer.toJSON());
+    const std::string payload = this->wsDataTransformer.toJSON();
+    client->text(payload.c_str(), payload.length());
 }
 
 void WebSocket::notifyClients() {
-    this->webSocket.textAll(this->wsDataTransformer.toJSON());
+    const std::string payload = this->wsDataTransformer.toJSON();
+    this->webSocket.textAll(payload.c_str(), payload.length());
 }
 
 AsyncWebSocket* WebSocket::getWebSocketObject() {

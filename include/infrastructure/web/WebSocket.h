@@ -3,7 +3,6 @@
 
     #include <Arduino.h>
     #include <ESPAsyncWebServer.h>
-    #include <Arduino_JSON.h>
     #include "application/WsMessageHandler.h"
     #include "application/WsDataTransformer.h"
 
