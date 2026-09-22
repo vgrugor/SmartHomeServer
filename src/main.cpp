@@ -1,7 +1,9 @@
 #include <Arduino.h>
 #include "config/DeviceConfig.h"
 #include "config/Secrets.h"
-#include "infrastructure/wifi/WiFiManager.h"
+#include "application/network/WiFiConnectionManager.h"
+#include "infrastructure/wifi/ArduinoClock.h"
+#include "infrastructure/wifi/EspWiFiConnection.h"
 #include "infrastructure/fs/FileSystem.h"
 #include "application/WSDataTransformer.h"
 #include "application/WsMessageHandler.h"
@@ -20,7 +22,17 @@
 #include "infrastructure/loaders/OTALoader.h"
 #include "domain/SensorData.h"
 
-WiFiManager wifiManager(WIFI_SSID, WIFI_PASSWORD, WIFI_IP, WIFI_GATEWAY, WIFI_SUBNET);
+EventNotifier& eventNotifier = EventNotifier::getInstance();
+
+EspWiFiConnection wifiConnection(
+    WIFI_SSID,
+    WIFI_PASSWORD,
+    WIFI_IP,
+    WIFI_GATEWAY,
+    WIFI_SUBNET
+);
+ArduinoClock systemClock;
+WiFiConnectionManager wifiManager(wifiConnection, systemClock, eventNotifier);
 FileSystem fileSystem;
 
 SensorData sensorData;
@@ -44,8 +56,6 @@ LedObserver ledObserver(externalLedActuator);
 BuzzerObserver buzzerObserver(buzzerActuator);
 SerialObserver serialObserver;
 WebSocketObserver webSocketObserver(webSocket);
-
-EventNotifier& eventNotifier = EventNotifier::getInstance();
 
 OTALoader OTA(OTA_HOSTNAME, OTA_PASSWORD);
 bool networkServicesStarted = false;

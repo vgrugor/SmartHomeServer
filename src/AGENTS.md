@@ -5,9 +5,9 @@ These instructions apply to implementation files under `src/`. Also follow the r
 ## Architecture boundaries
 
 - `domain/` owns sensor state and domain abstractions. Avoid ESP8266 networking or presentation concerns here.
-- `application/` owns sensor update/validation use cases, translates application messages, and defines event contracts used across adapters. Keep JSON field names compatible with `data/script.js` and `data/index.html`.
+- `application/` owns sensor update/validation use cases, translates application messages, defines event contracts used across adapters, and controls Wi-Fi connection state/timing through abstract network and clock interfaces. Keep JSON field names compatible with `data/script.js` and `data/index.html`.
 - `config/` contains tracked device behavior and the ignored local secrets implementation.
-- `infrastructure/` wraps hardware, storage, connectivity, WebSocket transport, and OTA.
+- `infrastructure/` wraps hardware, storage, ESP8266 connectivity and time, WebSocket transport, and OTA. Keep retry policy out of these adapters.
 - `presentation/` owns HTTP endpoints and event observers.
 - `main.cpp` should remain a small composition root rather than accumulating business logic.
 
@@ -15,7 +15,7 @@ When adding a class, place its header in the matching path under `include/` and 
 
 ## Embedded constraints
 
-- Avoid long blocking work in `loop()` and callbacks. Existing delays in connection notifications are legacy behavior; do not add more without a hardware reason.
+- Avoid long blocking work in `loop()` and callbacks. Wi-Fi retries and connection notifications are driven by the non-blocking application state machine.
 - Be conservative with heap allocations and repeated `String` construction on the ESP8266.
 - Keep asynchronous callback lifetimes safe. Objects referenced by callbacks currently have static storage duration through globals in `main.cpp`.
 - Validate WebSocket frame boundaries and HTTP parameters before reading data.

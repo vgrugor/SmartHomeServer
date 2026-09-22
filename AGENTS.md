@@ -17,9 +17,9 @@ The project is built with PlatformIO. The `nodemcuv2` environment builds Arduino
 
 - `src/main.cpp` is the composition root and contains Arduino `setup()` / `loop()`.
 - `include/domain/` and `src/domain/` hold device-independent data types and state.
-- `include/application/` and `src/application/` hold sensor update use cases, validation, WebSocket transformations, and application event contracts.
+- `include/application/` and `src/application/` hold sensor update use cases, validation, WebSocket transformations, application event contracts, and the device-independent Wi-Fi connection state machine.
 - `include/config/` and `src/config/` separate tracked device configuration from local secrets.
-- `include/infrastructure/` and `src/infrastructure/` contain ESP8266, Wi-Fi, LittleFS, OTA, WebSocket, and actuator adapters.
+- `include/infrastructure/` and `src/infrastructure/` contain ESP8266 network/clock adapters, LittleFS, OTA, WebSocket, and actuator adapters.
 - `include/presentation/` and `src/presentation/` contain HTTP routes and event observers.
 - `data/` is the LittleFS web application deployed separately from firmware.
 - `test/` contains native tests for device-independent domain and validation logic.
@@ -69,6 +69,8 @@ If `pio` is unavailable, report that verification limitation rather than install
 7. The dashboard connects to `/ws`, sends the exact command `getValues`, and updates elements whose IDs match JSON keys.
 
 `EventNotifier` dispatches synchronously, rejects null and duplicate observer registrations, and does not own observers. Event message pointers are valid only for the duration of each `Observer::update()` call.
+
+`WiFiConnectionManager` owns connection timing independently of the ESP8266 adapter. It reports a pending connection every second, retries every ten seconds, retries immediately after a detected connection loss, and uses wrap-safe unsigned elapsed-time calculations for `millis()` overflow.
 
 Public HTTP routes currently include:
 
