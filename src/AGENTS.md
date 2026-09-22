@@ -5,7 +5,7 @@ These instructions apply to implementation files under `src/`. Also follow the r
 ## Architecture boundaries
 
 - `domain/` owns sensor state and domain abstractions. Avoid ESP8266 networking or presentation concerns here.
-- `application/` translates application messages and owns the event contracts used across adapters. Keep JSON field names compatible with `data/script.js` and `data/index.html`.
+- `application/` owns sensor update/validation use cases, translates application messages, and defines event contracts used across adapters. Keep JSON field names compatible with `data/script.js` and `data/index.html`.
 - `config/` contains tracked device behavior and the ignored local secrets implementation.
 - `infrastructure/` wraps hardware, storage, connectivity, WebSocket transport, and OTA.
 - `presentation/` owns HTTP endpoints and event observers.

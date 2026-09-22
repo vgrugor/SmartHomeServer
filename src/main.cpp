@@ -5,8 +5,11 @@
 #include "infrastructure/fs/FileSystem.h"
 #include "application/WSDataTransformer.h"
 #include "application/WsMessageHandler.h"
+#include "application/SensorUpdateService.h"
+#include "application/SensorValueValidator.h"
 #include "infrastructure/web/WebSocket.h"
 #include "presentation/WebServer.h"
+#include "presentation/SensorUpdateEventNotifier.h"
 #include "infrastructure/actuators/BuzzerActuator.h"
 #include "infrastructure/actuators/ExternalLedActuator.h"
 #include "application/events/EventNotifier.h"
@@ -21,11 +24,18 @@ WiFiManager wifiManager(WIFI_SSID, WIFI_PASSWORD, WIFI_IP, WIFI_GATEWAY, WIFI_SU
 FileSystem fileSystem;
 
 SensorData sensorData;
+SensorValueValidator sensorValueValidator;
+SensorUpdateEventNotifier sensorUpdateEventNotifier;
+SensorUpdateService sensorUpdateService(
+    sensorData,
+    sensorValueValidator,
+    sensorUpdateEventNotifier
+);
 
 WsDataTransformer wsDataTransformer(sensorData);
 WsMessageHandler wsMessageHandler;
 WebSocket webSocket(wsMessageHandler, wsDataTransformer);
-WebServer webServer(webSocket, fileSystem, sensorData);
+WebServer webServer(webSocket, fileSystem, sensorUpdateService);
 
 ExternalLedActuator externalLedActuator(GREEN_LED_PIN);
 BuzzerActuator buzzerActuator(BUZZER_PIN);

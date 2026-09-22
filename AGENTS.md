@@ -17,7 +17,7 @@ The project is built with PlatformIO. The `nodemcuv2` environment builds Arduino
 
 - `src/main.cpp` is the composition root and contains Arduino `setup()` / `loop()`.
 - `include/domain/` and `src/domain/` hold device-independent data types and state.
-- `include/application/` and `src/application/` hold WebSocket transformations and application event contracts.
+- `include/application/` and `src/application/` hold sensor update use cases, validation, WebSocket transformations, and application event contracts.
 - `include/config/` and `src/config/` separate tracked device configuration from local secrets.
 - `include/infrastructure/` and `src/infrastructure/` contain ESP8266, Wi-Fi, LittleFS, OTA, WebSocket, and actuator adapters.
 - `include/presentation/` and `src/presentation/` contain HTTP routes and event observers.
@@ -63,9 +63,10 @@ If `pio` is unavailable, report that verification limitation rather than install
 1. Global objects are wired in `src/main.cpp`.
 2. `setup()` initializes hardware/filesystem components, registers observers, and starts Wi-Fi connection asynchronously.
 3. `loop()` advances the non-blocking Wi-Fi state and services OTA after the network services have started. The HTTP server is asynchronous and needs no polling call.
-4. HTTP handlers update the in-memory `SensorData` object and emit `WEB_SOCKET_NOTIFY_CLIENT`.
-5. `WsDataTransformer` serializes all six dashboard values using the DOM IDs `sliderValue1` through `sliderValue6`.
-6. The dashboard connects to `/ws`, requests `getValues`, and updates elements whose IDs match JSON keys.
+4. HTTP handlers parse parameters and delegate validation and state changes to `SensorUpdateService`.
+5. Each successful operation emits saved-value events and exactly one `WEB_SOCKET_NOTIFY_CLIENT` event.
+6. `WsDataTransformer` serializes all six dashboard values using the DOM IDs `sliderValue1` through `sliderValue6`.
+7. The dashboard connects to `/ws`, requests `getValues`, and updates elements whose IDs match JSON keys.
 
 Public HTTP routes currently include:
 
