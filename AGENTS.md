@@ -24,6 +24,7 @@ The project is built with PlatformIO. The `nodemcuv2` environment builds Arduino
 - `data/` is the LittleFS web application deployed separately from firmware.
 - `test/` contains PlatformIO native tests for device-independent firmware logic.
 - `tests/browser.cjs` exercises the LittleFS dashboard contract in a headless Chromium browser.
+- `.github/workflows/ci.yml` runs native tests, the ESP8266 compile check, and dashboard browser tests for pushes and pull requests.
 
 ## Local configuration and secrets
 
@@ -47,7 +48,9 @@ pio run -t clean
 
 `pio run` is the normal compile check. `uploadfs`, `upload`, the serial monitor, and OTA/USB device access interact with hardware; run them only when the user explicitly requests device-side work and provides the required connection details.
 
-Install the browser-test dependency with `npm install`. The test intercepts dashboard resources, HTTP health checks, and WebSocket traffic locally; it does not contact a controller. It uses an installed Chrome-family browser when available, falls back to Playwright's Chromium, and accepts `BROWSER_EXECUTABLE` for an explicit browser path.
+Install the browser-test dependency with `npm ci`. The test intercepts dashboard resources, HTTP health checks, and WebSocket traffic locally; it does not contact a controller. It uses an installed Chrome-family browser when available, falls back to Playwright's Chromium, and accepts `BROWSER_EXECUTABLE` for an explicit browser path.
+
+CI uses placeholder values copied from `src/config/Secrets.cpp.example` only to link the firmware. Never put repository or environment secrets into the workflow; hardware upload and deployment remain manual operations.
 
 If `pio` is unavailable, report that verification limitation rather than installing tools or claiming the build passed. The VS Code recommendation is `platformio.platformio-ide`.
 
