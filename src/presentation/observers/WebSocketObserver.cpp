@@ -9,5 +9,7 @@ void WebSocketObserver::update(EventType eventType, const String& message) {
             this->webSocket.notifyClients();
 
             break;
+        default:
+            break;
     }
 }

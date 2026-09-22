@@ -30,6 +30,7 @@ void WebSocket::handleEvent(AsyncWebSocket* server, AsyncWebSocketClient* client
             this->handleMessage(client, arg, data, len);
             break;
         case WS_EVT_PONG:
+        case WS_EVT_PING:
         case WS_EVT_ERROR:
             break;
     }
