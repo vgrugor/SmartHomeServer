@@ -27,7 +27,7 @@ void SensorUpdateEventNotifier::onSensorValueSaved(SensorType type, float value)
             break;
     }
 
-    EventNotifier::getInstance().notifyObservers(EventType::PARAM_SAVED, message);
+    EventNotifier::getInstance().notifyObservers(EventType::PARAM_SAVED, message.c_str());
 }
 
 void SensorUpdateEventNotifier::onSensorValuesUpdated() {

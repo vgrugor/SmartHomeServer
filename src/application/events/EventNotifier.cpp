@@ -1,4 +1,5 @@
 #include "application/events/EventNotifier.h"
+#include <algorithm>
 
 EventNotifier::EventNotifier() {}
 
@@ -7,16 +8,32 @@ EventNotifier& EventNotifier::getInstance() {
     return instance;
 }
 
-void EventNotifier::addObserver(Observer* observer) {
+bool EventNotifier::addObserver(Observer* observer) {
+    if (
+        observer == nullptr
+        || std::find(observers.begin(), observers.end(), observer) != observers.end()
+    ) {
+        return false;
+    }
+
     observers.push_back(observer);
+    return true;
 }
 
-void EventNotifier::removeObserver(Observer* observer) {
-    observers.erase(std::remove(observers.begin(), observers.end(), observer), observers.end());
+bool EventNotifier::removeObserver(Observer* observer) {
+    const auto position = std::find(observers.begin(), observers.end(), observer);
+    if (position == observers.end()) {
+        return false;
+    }
+
+    observers.erase(position);
+    return true;
 }
 
-void EventNotifier::notifyObservers(EventType eventType, const String& message) {
+void EventNotifier::notifyObservers(EventType eventType, const char* message) {
+    const char* safeMessage = message == nullptr ? "" : message;
+
     for (auto observer : observers) {
-        observer->update(eventType, message);
+        observer->update(eventType, safeMessage);
     }
 }

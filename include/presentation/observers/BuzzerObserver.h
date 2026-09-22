@@ -12,7 +12,7 @@
 
         public:
             BuzzerObserver(BuzzerActuator& buzzerActuator);
-            void update(EventType eventType, const String& message = "") override;
+            void update(EventType eventType, const char* message = "") override;
     };
 
 #endif // BUZZER_OBSERVER_H

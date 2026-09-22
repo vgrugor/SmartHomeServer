@@ -2,7 +2,7 @@
 
 LedObserver::LedObserver(ExternalLedActuator& externalLedActuator) : externalLedActuator(externalLedActuator) {}
 
-void LedObserver::update(EventType eventType, const String& message) {
+void LedObserver::update(EventType eventType, const char* message) {
     switch (eventType) {
         //WIFI events
         case EventType::WIFI_START_CONNECT: 

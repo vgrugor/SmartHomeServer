@@ -2,7 +2,7 @@
 
 WebSocketObserver::WebSocketObserver(WebSocket& webSocket) : webSocket(webSocket) {}
 
-void WebSocketObserver::update(EventType eventType, const String& message) {
+void WebSocketObserver::update(EventType eventType, const char* message) {
     switch (eventType) {
         //web socket events
         case EventType::WEB_SOCKET_NOTIFY_CLIENT:

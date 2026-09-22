@@ -68,6 +68,8 @@ If `pio` is unavailable, report that verification limitation rather than install
 6. `WsDataTransformer` serializes all six dashboard values as two-decimal strings using the DOM IDs `sliderValue1` through `sliderValue6`.
 7. The dashboard connects to `/ws`, sends the exact command `getValues`, and updates elements whose IDs match JSON keys.
 
+`EventNotifier` dispatches synchronously, rejects null and duplicate observer registrations, and does not own observers. Event message pointers are valid only for the duration of each `Observer::update()` call.
+
 Public HTTP routes currently include:
 
 - `GET /`

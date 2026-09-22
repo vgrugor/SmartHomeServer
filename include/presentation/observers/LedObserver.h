@@ -11,7 +11,7 @@
 
         public:
             LedObserver(ExternalLedActuator& externalLedActuator);
-            void update(EventType eventType, const String& message = "") override;
+            void update(EventType eventType, const char* message = "") override;
     };
 
 #endif // LED_OBSERVER_H

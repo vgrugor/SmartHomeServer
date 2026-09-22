@@ -3,7 +3,7 @@
 BuzzerObserver::BuzzerObserver(BuzzerActuator& buzzerActuator)
     : buzzerActuator(buzzerActuator), state(false) {}
 
-void BuzzerObserver::update(EventType eventType, const String& message) {
+void BuzzerObserver::update(EventType eventType, const char* message) {
     switch (eventType) {
         //WIFI events
         case EventType::WIFI_START_CONNECT:

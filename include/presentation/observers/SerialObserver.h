@@ -6,7 +6,7 @@
 
     class SerialObserver : public Observer {
         public:
-            void update(EventType eventType, const String& message = "") override;
+            void update(EventType eventType, const char* message = "") override;
     };
 
 #endif // SERIAL_OBSERVER_H
