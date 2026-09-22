@@ -1,0 +1,13 @@
+#ifndef EVENT_TYPE_H
+#define EVENT_TYPE_H
+
+enum class EventType {
+    WIFI_START_CONNECT,
+    WIFI_TRY_CONNECT,
+    WIFI_CONNECTED,
+    WIFI_RECONNECT,
+    PARAM_SAVED,
+    WEB_SOCKET_NOTIFY_CLIENT,
+};
+
+#endif // EVENT_TYPE_H

@@ -2,8 +2,7 @@
     #define WEB_SOCKED_OBSERVER_H
 
     #include <Arduino.h>
-    #include "Observer.h"
-    #include "presentation/EventType.h"
+    #include "application/events/Observer.h"
     #include "infrastructure/web/WebSocket.h"
 
     class WebSocketObserver : public Observer {

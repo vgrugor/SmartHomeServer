@@ -12,11 +12,14 @@ WiFiManager::WiFiManager(
     password(password), 
     ip(ip), 
     gateway(gateway), 
-    subnet(subnet) 
+    subnet(subnet),
+    wasConnected(false),
+    lastStatusNotificationAt(0),
+    lastReconnectAttemptAt(0)
 {
 }
 
-void WiFiManager::connect() {
+void WiFiManager::begin() {
     IPAddress ip;
     IPAddress gateway;
     IPAddress subnet;
@@ -27,31 +30,49 @@ void WiFiManager::connect() {
 
     WiFi.mode(WIFI_STA);
     WiFi.config(ip, gateway, subnet);
-    WiFi.begin(ssid, password);
+    WiFi.setAutoReconnect(true);
+    WiFi.begin(this->ssid, this->password);
 
-    EventNotifier& eventNotifier = EventNotifier::getInstance();
+    const unsigned long now = millis();
+    this->lastStatusNotificationAt = now;
+    this->lastReconnectAttemptAt = now;
 
-    eventNotifier.notifyObservers(EventType::WIFI_START_CONNECT);
-
-    while (WiFi.status() != WL_CONNECTED) {
-        delay(1000);
-        eventNotifier.notifyObservers(EventType::WIFI_TRY_CONNECT);
-    }
-
-    eventNotifier.notifyObservers(EventType::WIFI_CONNECTED);
+    EventNotifier::getInstance().notifyObservers(EventType::WIFI_START_CONNECT);
 }
 
-void WiFiManager::reconnect() {
-    if (!isConnected()) {
+void WiFiManager::update() {
+    const bool connected = isConnected();
+    const unsigned long now = millis();
+
+    if (connected) {
+        if (!this->wasConnected) {
+            this->wasConnected = true;
+            EventNotifier::getInstance().notifyObservers(EventType::WIFI_CONNECTED);
+        }
+
+        return;
+    }
+
+    if (this->wasConnected) {
+        this->wasConnected = false;
         EventNotifier::getInstance().notifyObservers(EventType::WIFI_RECONNECT);
-        connect();
+    }
+
+    if (now - this->lastStatusNotificationAt >= 1000) {
+        this->lastStatusNotificationAt = now;
+        EventNotifier::getInstance().notifyObservers(EventType::WIFI_TRY_CONNECT);
+    }
+
+    if (now - this->lastReconnectAttemptAt >= 10000) {
+        this->lastReconnectAttemptAt = now;
+        WiFi.reconnect();
     }
 }
 
-bool WiFiManager::isConnected() {
+bool WiFiManager::isConnected() const {
     return WiFi.status() == WL_CONNECTED;
 }
 
-String WiFiManager::getIPAddress() {
+String WiFiManager::getIPAddress() const {
     return WiFi.localIP().toString();
 }

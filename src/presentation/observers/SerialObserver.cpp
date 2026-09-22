@@ -12,6 +12,8 @@ void SerialObserver::update(EventType eventType, const String& message) {
         
         //data events
         case EventType::PARAM_SAVED: text = message; break;
+
+        default: return;
     }
 
     Serial.println(text);

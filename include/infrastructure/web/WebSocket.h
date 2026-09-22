@@ -13,7 +13,8 @@
         WsDataTransformer& wsDataTransformer;
         AsyncWebSocket webSocket;
         void handleEvent(AsyncWebSocket* server, AsyncWebSocketClient* client, AwsEventType type, void* arg, uint8_t* data, size_t len);
-        void handleMessage(void* arg, uint8_t* data, size_t len);
+        void handleMessage(AsyncWebSocketClient* client, void* arg, const uint8_t* data, size_t len);
+        void notifyClient(AsyncWebSocketClient* client);
 
     public:
         WebSocket(WsMessageHandler& wsMessageHandler, WsDataTransformer& wsDataTransformer);

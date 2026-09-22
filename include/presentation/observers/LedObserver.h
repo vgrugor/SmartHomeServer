@@ -2,16 +2,15 @@
     #define LED_OBSERVER_H
 
     #include <Arduino.h>
-    #include "Observer.h"
-    #include "presentation/EventType.h"
+    #include "application/events/Observer.h"
     #include "infrastructure/actuators/ExternalLedActuator.h"
 
     class LedObserver : public Observer {
         private:
-            ExternalLedActuator externalLedActuator;
+            ExternalLedActuator& externalLedActuator;
 
         public:
-            LedObserver(ExternalLedActuator externalLedActuator);
+            LedObserver(ExternalLedActuator& externalLedActuator);
             void update(EventType eventType, const String& message = "") override;
     };
 

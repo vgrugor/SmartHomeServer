@@ -1,32 +1,28 @@
 #include "presentation/observers/BuzzerObserver.h"
 
-BuzzerObserver::BuzzerObserver(BuzzerActuator buzzerActuator) : buzzerActuator(buzzerActuator) {}
+BuzzerObserver::BuzzerObserver(BuzzerActuator& buzzerActuator)
+    : buzzerActuator(buzzerActuator), state(false) {}
 
 void BuzzerObserver::update(EventType eventType, const String& message) {
     switch (eventType) {
         //WIFI events
-        case EventType::WIFI_START_CONNECT: 
-            this->buzzerActuator.setState(HIGH);
-            delay(1000);
-            this->buzzerActuator.setState(LOW);
-            delay(1000);
+        case EventType::WIFI_START_CONNECT:
+            this->state = true;
+            this->buzzerActuator.setState(this->state);
             break;
-        case EventType::WIFI_TRY_CONNECT: 
-            this->buzzerActuator.setState(HIGH);
-            delay(100);
-            this->buzzerActuator.setState(LOW);
-            delay(100);
+        case EventType::WIFI_TRY_CONNECT:
+            this->state = !this->state;
+            this->buzzerActuator.setState(this->state);
             break;
-        case EventType::WIFI_CONNECTED: 
-            this->buzzerActuator.setState(HIGH);
-            delay(500);
-            this->buzzerActuator.setState(LOW);
-            delay(500);
-            this->buzzerActuator.setState(HIGH);
-            delay(500);
-            this->buzzerActuator.setState(LOW);
+        case EventType::WIFI_CONNECTED:
+            this->state = false;
+            this->buzzerActuator.setState(this->state);
             break;
-        case EventType::WIFI_RECONNECT: 
+        case EventType::WIFI_RECONNECT:
+            this->state = true;
+            this->buzzerActuator.setState(this->state);
+            break;
+        default:
             break;
     }
 }

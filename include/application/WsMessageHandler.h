@@ -3,13 +3,15 @@
 
     #include <Arduino.h>
 
+    enum class WsMessageType {
+        GET_VALUES,
+        UNKNOWN,
+    };
+
     class WsMessageHandler
     {
         public:
-            WsMessageHandler();
-            bool handle(String message);
-
-        private:
+            WsMessageType handle(const String& message) const;
     };
 
 #endif

@@ -2,8 +2,7 @@
     #define SERIAL_OBSERVER_H
 
     #include <Arduino.h>
-    #include "Observer.h"
-    #include "presentation/EventType.h"
+    #include "application/events/Observer.h"
 
     class SerialObserver : public Observer {
         public:

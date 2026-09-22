@@ -10,8 +10,8 @@
 
         public:
             BuzzerActuator(int pin);
+            void begin() override;
             void setState(bool state) override;
-            void update() override;
     };
 
 #endif // BUZZER_ACTUATOR_H

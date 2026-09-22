@@ -1,5 +1,6 @@
 #include <Arduino.h>
-#include "infrastructure/env.h"
+#include "config/DeviceConfig.h"
+#include "config/Secrets.h"
 #include "infrastructure/wifi/WiFiManager.h"
 #include "infrastructure/fs/FileSystem.h"
 #include "application/WSDataTransformer.h"
@@ -8,7 +9,7 @@
 #include "presentation/WebServer.h"
 #include "infrastructure/actuators/BuzzerActuator.h"
 #include "infrastructure/actuators/ExternalLedActuator.h"
-#include "presentation/EventNotifier.h"
+#include "application/events/EventNotifier.h"
 #include "presentation/observers/BuzzerObserver.h"
 #include "presentation/observers/LedObserver.h"
 #include "presentation/observers/SerialObserver.h"
@@ -37,26 +38,36 @@ WebSocketObserver webSocketObserver(webSocket);
 EventNotifier& eventNotifier = EventNotifier::getInstance();
 
 OTALoader OTA(OTA_HOSTNAME, OTA_PASSWORD);
+bool networkServicesStarted = false;
 
 void setup() {
     Serial.begin(115200);
+
+    externalLedActuator.begin();
+    buzzerActuator.begin();
+
+    if (!fileSystem.begin()) {
+        Serial.println("Failed to mount LittleFS");
+    }
 
     eventNotifier.addObserver(&ledObserver);
     eventNotifier.addObserver(&buzzerObserver);
     eventNotifier.addObserver(&serialObserver);
     eventNotifier.addObserver(&webSocketObserver);
 
-    wifiManager.connect();
-
-    webServer.begin();
-
-    OTA.begin();
+    wifiManager.begin();
 }
 
 void loop() {
-    wifiManager.reconnect();
+    wifiManager.update();
 
-    webServer.handleClient();
+    if (wifiManager.isConnected() && !networkServicesStarted) {
+        webServer.begin();
+        OTA.begin();
+        networkServicesStarted = true;
+    }
 
-    OTA.handle();
+    if (networkServicesStarted) {
+        OTA.handle();
+    }
 }

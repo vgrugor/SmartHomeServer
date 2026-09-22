@@ -52,37 +52,20 @@ function getValues() {
     websocket.send("getValues");
 }
 
-function updateSliderPWM(element) {
-    var sliderNumber = element.id.charAt(element.id.length - 1);
-    var slider = document.getElementById(element.id);
-    var newValue = slider.value;
-    var valueDisplay = document.getElementById("sliderValue" + sliderNumber);
-    var oldValue = valueDisplay.innerHTML;
-
-    valueDisplay.innerHTML = newValue;
-
-    if (isConnected) {
-        websocket.send(sliderNumber + "s" + newValue.toString());
-    } else {
-        alert("⚠️ Контролер недоступний. Зміни не збережено.");
-
-        slider.value = oldValue;
-        valueDisplay.innerHTML = oldValue;
-    }
-}
-
 function onMessage(event) {
     console.log(event.data);
-    var myObj = JSON.parse(event.data);
-    var keys = Object.keys(myObj);
 
-    for (var i = 0; i < keys.length; i++) {
-        var key = keys[i];
-        document.getElementById(key).innerHTML = myObj[key];
-        var slider = document.getElementById("slider" + (i + 1));
-        if (slider) {
-            slider.value = myObj[key];
-        }
+    try {
+        const values = JSON.parse(event.data);
+
+        Object.entries(values).forEach(([elementId, value]) => {
+            const element = document.getElementById(elementId);
+            if (element) {
+                element.textContent = value;
+            }
+        });
+    } catch (error) {
+        console.error("Invalid WebSocket payload", error);
     }
 }
 
