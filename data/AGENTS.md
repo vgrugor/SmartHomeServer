@@ -28,4 +28,5 @@ When changing IDs, payload shape, routes, or units, update the corresponding C++
 - Do not introduce a build pipeline or external CDN dependency unless explicitly requested; the current assets are static HTML, CSS, JavaScript, PNG, and SVG files.
 - Preserve the disconnected-state warning and WebSocket reconnect behavior when editing connection logic.
 - Check the browser console for syntax/runtime errors and exercise open, close/reconnect, initial values, and incoming update flows when browser testing is available.
+- Run `npm run test:browser` when changing `index.html` or `script.js`. The suite covers the active tab, initial request, all six values, malformed messages, offline status, and reconnect delay.
 - Avoid caching changes that could mask a newly uploaded dashboard; the current HTML deliberately disables caching.

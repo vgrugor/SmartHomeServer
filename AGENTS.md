@@ -22,7 +22,8 @@ The project is built with PlatformIO. The `nodemcuv2` environment builds Arduino
 - `include/infrastructure/` and `src/infrastructure/` contain ESP8266 network/clock adapters, LittleFS, OTA, WebSocket, and actuator adapters.
 - `include/presentation/` and `src/presentation/` contain HTTP routes and event observers.
 - `data/` is the LittleFS web application deployed separately from firmware.
-- `test/` contains native tests for device-independent domain and validation logic.
+- `test/` contains PlatformIO native tests for device-independent firmware logic.
+- `tests/browser.cjs` exercises the LittleFS dashboard contract in a headless Chromium browser.
 
 ## Local configuration and secrets
 
@@ -37,6 +38,7 @@ Run commands from the repository root:
 ```sh
 pio run
 pio test -e native
+npm run test:browser
 pio run -t uploadfs
 pio run -t upload
 pio device monitor -b 115200
@@ -44,6 +46,8 @@ pio run -t clean
 ```
 
 `pio run` is the normal compile check. `uploadfs`, `upload`, the serial monitor, and OTA/USB device access interact with hardware; run them only when the user explicitly requests device-side work and provides the required connection details.
+
+Install the browser-test dependency with `npm install`. The test intercepts dashboard resources, HTTP health checks, and WebSocket traffic locally; it does not contact a controller. It uses an installed Chrome-family browser when available, falls back to Playwright's Chromium, and accepts `BROWSER_EXECUTABLE` for an explicit browser path.
 
 If `pio` is unavailable, report that verification limitation rather than installing tools or claiming the build passed. The VS Code recommendation is `platformio.platformio-ide`.
 
@@ -55,6 +59,7 @@ If `pio` is unavailable, report that verification limitation rather than install
 - Changes under `data/` require a LittleFS upload (`pio run -t uploadfs`) to reach a device; a firmware upload alone does not deploy them.
 - Changes under `src/`, `include/`, or `platformio.ini` require at least `pio run` when PlatformIO is available.
 - Run `pio test -e native` for device-independent logic. Add focused tests under `test/` when more Arduino-free behavior is introduced.
+- Run `npm run test:browser` when changing `data/index.html` or `data/script.js`.
 - Do not perform a hardware upload as verification unless explicitly authorized. A successful compile is not evidence that Wi-Fi, HTTP, WebSocket, pins, or OTA work on the physical device.
 - Keep changes focused. Do not silently refactor hardware initialization, change GPIO assignments, network addresses, endpoint parameter names, or browser-visible units.
 
