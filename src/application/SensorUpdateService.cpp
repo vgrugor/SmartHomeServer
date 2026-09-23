@@ -3,10 +3,12 @@
 SensorUpdateService::SensorUpdateService(
     SensorData& sensorData,
     const SensorValueValidator& validator,
-    SensorUpdateListener& listener
+    SensorUpdateListener& listener,
+    const MonotonicClock& clock
 ) : sensorData(sensorData),
     validator(validator),
-    listener(listener)
+    listener(listener),
+    clock(clock)
 {}
 
 bool SensorUpdateService::updateValue(SensorType type, float value) {
@@ -44,6 +46,6 @@ bool SensorUpdateService::updateShower(
 }
 
 void SensorUpdateService::saveValue(SensorType type, float value) {
-    this->sensorData.setValue(type, value);
+    this->sensorData.setValue(type, value, this->clock.now());
     this->listener.onSensorValueSaved(type, value);
 }

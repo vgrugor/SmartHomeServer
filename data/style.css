@@ -95,6 +95,7 @@ html {
 
   .state {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     justify-content: center;
   }
@@ -102,6 +103,13 @@ html {
   .state img {
       vertical-align: middle;
       margin-right: 10px; /* Дополнительный отступ, если нужен */
+  }
+
+  .update-age {
+      flex-basis: 100%;
+      margin-top: 4px;
+      font-size: 0.8rem;
+      color: #5f6b73;
   }
 
   .slider-vertical {

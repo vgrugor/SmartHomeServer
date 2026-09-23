@@ -2,6 +2,15 @@
 #include <unity.h>
 #include "application/SensorUpdateService.h"
 
+class FakeClock : public MonotonicClock {
+    public:
+        uint32_t currentTime = 0;
+
+        uint32_t now() const override {
+            return currentTime;
+        }
+};
+
 struct SavedValueEvent {
     SensorType type;
     float value;
@@ -30,7 +39,8 @@ void test_updates_each_sensor_type() {
     SensorData data;
     SensorValueValidator validator;
     RecordingSensorUpdateListener listener;
-    SensorUpdateService service(data, validator, listener);
+    FakeClock clock;
+    SensorUpdateService service(data, validator, listener, clock);
 
     TEST_ASSERT_TRUE(service.updateValue(SensorType::HOUSE_TEMP, 21.5f));
     TEST_ASSERT_TRUE(service.updateValue(SensorType::OUTDOOR_TEMP, -4.0f));
@@ -53,7 +63,8 @@ void test_rejects_invalid_values_without_events() {
     SensorData data;
     SensorValueValidator validator;
     RecordingSensorUpdateListener listener;
-    SensorUpdateService service(data, validator, listener);
+    FakeClock clock;
+    SensorUpdateService service(data, validator, listener, clock);
 
     TEST_ASSERT_FALSE(service.updateValue(
         SensorType::HOUSE_TEMP,
@@ -86,7 +97,8 @@ void test_invalid_shower_update_is_atomic() {
 
     SensorValueValidator validator;
     RecordingSensorUpdateListener listener;
-    SensorUpdateService service(data, validator, listener);
+    FakeClock clock;
+    SensorUpdateService service(data, validator, listener, clock);
 
     TEST_ASSERT_FALSE(service.updateShower(42.0f, 30.0f, 12.5f, 101.0f));
 
@@ -102,7 +114,9 @@ void test_valid_shower_update_emits_four_saved_events_and_one_update_event() {
     SensorData data;
     SensorValueValidator validator;
     RecordingSensorUpdateListener listener;
-    SensorUpdateService service(data, validator, listener);
+    FakeClock clock;
+    clock.currentTime = 123456;
+    SensorUpdateService service(data, validator, listener, clock);
 
     TEST_ASSERT_TRUE(service.updateShower(42.0f, 30.0f, 12.5f, 75.0f));
 
@@ -112,6 +126,10 @@ void test_valid_shower_update_emits_four_saved_events_and_one_update_event() {
     TEST_ASSERT_FLOAT_WITHIN(0.001f, 75.0f, data.getValue(SensorType::BATTERY_PERCENT));
     TEST_ASSERT_EQUAL_INT(4, listener.savedEventCount);
     TEST_ASSERT_EQUAL_INT(1, listener.valuesUpdatedEventCount);
+    TEST_ASSERT_EQUAL_UINT32(123456, data.getUpdatedAtMs(SensorType::WATER_TEMP));
+    TEST_ASSERT_EQUAL_UINT32(123456, data.getUpdatedAtMs(SensorType::WATER_LEVEL_LITER));
+    TEST_ASSERT_EQUAL_UINT32(123456, data.getUpdatedAtMs(SensorType::BATTERY_VOLTAGE));
+    TEST_ASSERT_EQUAL_UINT32(123456, data.getUpdatedAtMs(SensorType::BATTERY_PERCENT));
     TEST_ASSERT_EQUAL_INT(
         static_cast<int>(SensorType::WATER_TEMP),
         static_cast<int>(listener.savedEvents[0].type)
@@ -134,7 +152,9 @@ void test_single_update_emits_saved_value_and_one_update_event() {
     SensorData data;
     SensorValueValidator validator;
     RecordingSensorUpdateListener listener;
-    SensorUpdateService service(data, validator, listener);
+    FakeClock clock;
+    clock.currentTime = 654321;
+    SensorUpdateService service(data, validator, listener, clock);
 
     TEST_ASSERT_TRUE(service.updateValue(SensorType::HOUSE_TEMP, 23.75f));
 
@@ -145,6 +165,7 @@ void test_single_update_emits_saved_value_and_one_update_event() {
         static_cast<int>(listener.savedEvents[0].type)
     );
     TEST_ASSERT_FLOAT_WITHIN(0.001f, 23.75f, listener.savedEvents[0].value);
+    TEST_ASSERT_EQUAL_UINT32(654321, data.getUpdatedAtMs(SensorType::HOUSE_TEMP));
 }
 
 int main(int argc, char** argv) {
