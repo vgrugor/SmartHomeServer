@@ -90,6 +90,8 @@ function refreshUpdateAges() {
 
 function renderUpdateAge(valueElementId) {
     const ageElement = document.getElementById(`${valueElementId}Age`);
+    const valueElement = document.getElementById(valueElementId);
+    const valueContainer = valueElement?.closest(".sensor-value");
     const age = updateAges[valueElementId];
 
     if (!ageElement || !age) {
@@ -98,11 +100,14 @@ function renderUpdateAge(valueElementId) {
 
     if (age.ageMinutes === null || !Number.isFinite(age.ageMinutes)) {
         ageElement.textContent = "ще не оновлено";
+        valueContainer?.classList.remove("is-stale");
         return;
     }
 
     const minutesSinceMessage = Math.floor((Date.now() - age.receivedAtMs) / 60000);
-    ageElement.textContent = formatUpdateAge(age.ageMinutes + minutesSinceMessage);
+    const totalMinutes = Math.max(0, age.ageMinutes + minutesSinceMessage);
+    ageElement.textContent = formatUpdateAge(totalMinutes);
+    valueContainer?.classList.toggle("is-stale", totalMinutes >= 60);
 }
 
 function formatUpdateAge(totalMinutes) {

@@ -154,6 +154,15 @@ async function testOpenRequestsAndRendersAllValues(browser) {
                         const ageId = id.replace('AgeMinutes', 'Age');
                         return [ageId, document.getElementById(ageId)?.textContent];
                     })
+            ),
+            staleValues: Object.fromEntries(
+                Object.keys(values)
+                    .filter(id => !id.endsWith('AgeMinutes'))
+                    .map(id => [
+                        id,
+                        document.getElementById(id)?.closest('.sensor-value')
+                            ?.classList.contains('is-stale')
+                    ])
             )
         };
     }, payload);
@@ -176,6 +185,14 @@ async function testOpenRequestsAndRendersAllValues(browser) {
         sliderValue5Age: 'оновлено: 2 дні тому',
         sliderValue6Age: 'ще не оновлено'
     });
+    assert.deepEqual(result.staleValues, {
+        sliderValue1: false,
+        sliderValue2: false,
+        sliderValue3: true,
+        sliderValue4: true,
+        sliderValue5: true,
+        sliderValue6: false
+    });
     assert.deepEqual(consoleErrors, []);
     await page.close();
 }
@@ -190,12 +207,22 @@ async function testFormatsAgeBoundariesAndRefreshesLocally(browser) {
         const socket = window.__dashboardTest.sockets[0];
         socket.receive(JSON.stringify({ sliderValue1AgeMinutes: 59 }));
         const beforeRefresh = document.getElementById('sliderValue1Age').textContent;
+        const staleBeforeRefresh = document.querySelector('#sliderValue1')
+            .closest('.sensor-value').classList.contains('is-stale');
         now += 60000;
         refreshUpdateAges();
+        const afterRefresh = document.getElementById('sliderValue1Age').textContent;
+        const staleAfterRefresh = document.querySelector('#sliderValue1')
+            .closest('.sensor-value').classList.contains('is-stale');
+        socket.receive(JSON.stringify({ sliderValue1AgeMinutes: 0 }));
 
         return {
             beforeRefresh,
-            afterRefresh: document.getElementById('sliderValue1Age').textContent,
+            staleBeforeRefresh,
+            afterRefresh,
+            staleAfterRefresh,
+            staleAfterFreshUpdate: document.querySelector('#sliderValue1')
+                .closest('.sensor-value').classList.contains('is-stale'),
             exactHour: formatUpdateAge(60),
             underDay: formatUpdateAge(1439),
             roundsDownToDay: formatUpdateAge(2159),
@@ -207,7 +234,10 @@ async function testFormatsAgeBoundariesAndRefreshesLocally(browser) {
 
     assert.deepEqual(result, {
         beforeRefresh: 'оновлено: 59 хв тому',
+        staleBeforeRefresh: false,
         afterRefresh: 'оновлено: 1 год тому',
+        staleAfterRefresh: true,
+        staleAfterFreshUpdate: false,
         exactHour: 'оновлено: 1 год тому',
         underDay: 'оновлено: 23 год 59 хв тому',
         roundsDownToDay: 'оновлено: 1 день тому',
