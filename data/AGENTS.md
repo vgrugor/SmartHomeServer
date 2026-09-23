@@ -16,7 +16,9 @@ Do not run that hardware-affecting command unless the user explicitly asks. Firm
 
 - The WebSocket URL is `/ws` on the current host.
 - On connect, the browser sends the exact, case-sensitive command `getValues`.
-- Incoming JSON keys are DOM element IDs: `sliderValue1` through `sliderValue6`; values are strings formatted to two decimal places.
+- Incoming JSON value keys are DOM element IDs: `sliderValue1` through `sliderValue6`; values are strings formatted to two decimal places.
+- Each value also has a `sliderValueNAgeMinutes` key containing whole elapsed minutes or `null` when it has never been updated. The dashboard renders these into `sliderValueNAge` elements and advances them locally once per minute.
+- Readings that have never been updated or are at least 60 minutes old receive the `is-stale` class on their `.sensor-value` wrapper and are displayed in muted gray until a fresh update arrives.
 - The six values represent house temperature, outdoor temperature, shower-water temperature, water volume, battery voltage, and battery percentage in that order.
 - Navigation targets use fixed controller IP addresses. Treat changes to them as deployment configuration changes, not cosmetic edits.
 

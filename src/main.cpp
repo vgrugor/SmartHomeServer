@@ -41,10 +41,11 @@ SensorUpdateEventNotifier sensorUpdateEventNotifier;
 SensorUpdateService sensorUpdateService(
     sensorData,
     sensorValueValidator,
-    sensorUpdateEventNotifier
+    sensorUpdateEventNotifier,
+    systemClock
 );
 
-WsDataTransformer wsDataTransformer(sensorData);
+WsDataTransformer wsDataTransformer(sensorData, systemClock);
 WsMessageHandler wsMessageHandler;
 WebSocket webSocket(wsMessageHandler, wsDataTransformer);
 WebServer webServer(webSocket, fileSystem, sensorUpdateService);

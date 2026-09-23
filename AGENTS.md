@@ -73,8 +73,8 @@ If `pio` is unavailable, report that verification limitation rather than install
 3. `loop()` advances the non-blocking Wi-Fi state and services OTA after the network services have started. The HTTP server is asynchronous and needs no polling call.
 4. HTTP handlers parse parameters and delegate validation and state changes to `SensorUpdateService`.
 5. Each successful operation emits saved-value events and exactly one `WEB_SOCKET_NOTIFY_CLIENT` event.
-6. `WsDataTransformer` serializes all six dashboard values as two-decimal strings using the DOM IDs `sliderValue1` through `sliderValue6`.
-7. The dashboard connects to `/ws`, sends the exact command `getValues`, and updates elements whose IDs match JSON keys.
+6. `WsDataTransformer` serializes all six dashboard values as two-decimal strings using the DOM IDs `sliderValue1` through `sliderValue6`. It also sends each reading's age in whole minutes as `sliderValueNAgeMinutes`, or `null` when that reading has never been updated.
+7. The dashboard connects to `/ws`, sends the exact command `getValues`, updates elements whose IDs match value keys, and refreshes the human-readable update ages locally once per minute.
 
 `EventNotifier` dispatches synchronously, rejects null and duplicate observer registrations, and does not own observers. Event message pointers are valid only for the duration of each `Observer::update()` call.
 
