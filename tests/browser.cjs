@@ -191,7 +191,7 @@ async function testOpenRequestsAndRendersAllValues(browser) {
         sliderValue3: true,
         sliderValue4: true,
         sliderValue5: true,
-        sliderValue6: false
+        sliderValue6: true
     });
     assert.deepEqual(consoleErrors, []);
     await page.close();
@@ -205,6 +205,9 @@ async function testFormatsAgeBoundariesAndRefreshesLocally(browser) {
         Date.now = () => now;
 
         const socket = window.__dashboardTest.sockets[0];
+        socket.receive(JSON.stringify({ sliderValue1AgeMinutes: null }));
+        const staleBeforeFirstUpdate = document.querySelector('#sliderValue1')
+            .closest('.sensor-value').classList.contains('is-stale');
         socket.receive(JSON.stringify({ sliderValue1AgeMinutes: 59 }));
         const beforeRefresh = document.getElementById('sliderValue1Age').textContent;
         const staleBeforeRefresh = document.querySelector('#sliderValue1')
@@ -217,6 +220,7 @@ async function testFormatsAgeBoundariesAndRefreshesLocally(browser) {
         socket.receive(JSON.stringify({ sliderValue1AgeMinutes: 0 }));
 
         return {
+            staleBeforeFirstUpdate,
             beforeRefresh,
             staleBeforeRefresh,
             afterRefresh,
@@ -233,6 +237,7 @@ async function testFormatsAgeBoundariesAndRefreshesLocally(browser) {
     });
 
     assert.deepEqual(result, {
+        staleBeforeFirstUpdate: true,
         beforeRefresh: 'оновлено: 59 хв тому',
         staleBeforeRefresh: false,
         afterRefresh: 'оновлено: 1 год тому',

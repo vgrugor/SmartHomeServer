@@ -100,7 +100,7 @@ function renderUpdateAge(valueElementId) {
 
     if (age.ageMinutes === null || !Number.isFinite(age.ageMinutes)) {
         ageElement.textContent = "ще не оновлено";
-        valueContainer?.classList.remove("is-stale");
+        valueContainer?.classList.add("is-stale");
         return;
     }
 

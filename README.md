@@ -122,7 +122,7 @@ The WebSocket endpoint is `ws://DEVICE_IP/ws`. After connecting, send the exact 
 }
 ```
 
-Sensor values are strings formatted to two decimal places. Each `AgeMinutes` field contains the number of complete minutes since that reading was updated, or `null` if the reading has never been received. The dashboard displays minutes, hours with minutes, or rounded days and advances the displayed age locally once per minute. Readings that are at least 60 minutes old are shown in muted gray until fresh data arrives.
+Sensor values are strings formatted to two decimal places. Each `AgeMinutes` field contains the number of complete minutes since that reading was updated, or `null` if the reading has never been received. The dashboard displays minutes, hours with minutes, or rounded days and advances the displayed age locally once per minute. Readings that have never been updated or are at least 60 minutes old are shown in muted gray until fresh data arrives.
 
 ## Uploading to a device
 
