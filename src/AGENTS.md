@@ -5,9 +5,10 @@ These instructions apply to implementation files under `src/`. Also follow the r
 ## Architecture boundaries
 
 - `domain/` owns sensor state and domain abstractions. Avoid ESP8266 networking or presentation concerns here.
-- `application/` owns sensor update/validation use cases, translates application messages, defines event contracts used across adapters, and controls Wi-Fi connection state/timing through abstract network and clock interfaces. Keep JSON field names compatible with `data/script.js` and `data/index.html`.
+- `application/` owns sensor update/validation use cases, translates application messages, defines event contracts used across adapters, and controls Wi-Fi and display timing through abstract interfaces. Keep JSON field names compatible with `data/script.js` and `data/index.html`.
 - `config/` contains tracked device behavior and the ignored local secrets implementation.
 - `infrastructure/` wraps hardware, storage, ESP8266 connectivity and time, WebSocket transport, and OTA. Keep retry policy out of these adapters.
+- The ST7789V adapter renders directly to the display without a full-screen framebuffer. Preserve that approach because a 240×320 16-bit framebuffer exceeds ESP8266 RAM.
 - `presentation/` owns HTTP endpoints and event observers.
 - `main.cpp` should remain a small composition root rather than accumulating business logic.
 

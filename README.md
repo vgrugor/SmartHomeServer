@@ -9,6 +9,7 @@ Firmware for a NodeMCU v2 / ESP8266 home controller. The controller receives ind
 - sensor updates over HTTP;
 - real-time browser synchronization over WebSocket;
 - last-update age for every displayed parameter;
+- rotating full-screen sensor readings on a 2.8-inch ST7789V TFT;
 - LED, buzzer, Serial, and WebSocket event notifications;
 - Arduino OTA updates for firmware and LittleFS;
 - native unit tests and dashboard browser tests.
@@ -151,3 +152,22 @@ OTA_PASSWORD='your_password' pio run -e nodemcuv2 -t uploadfs
 ```
 
 Changes under `src/` or `include/` require a firmware upload. Changes under `data/` require a separate LittleFS upload.
+
+## Local ST7789V display
+
+The firmware supports the 2.8-inch 240×320 SPI ST7789V module in landscape orientation. It shows one reading at a time using the largest text that fits and advances every five seconds. Missing values and readings that are at least one hour old are excluded from the rotation and remain available only in the web dashboard. The display shows `NO FRESH DATA` when no current readings are available.
+
+Connect the display as follows:
+
+| Display pin | NodeMCU pin | Purpose |
+| --- | --- | --- |
+| `SCL` | `D5 / GPIO14` | Hardware SPI clock |
+| `SDA` | `D7 / GPIO13` | Hardware SPI MOSI |
+| `CS` | `D8 / GPIO15` | Chip select |
+| `DC` | `D2 / GPIO4` | Data/command selection |
+| `RST` | NodeMCU `RST` | Shared hardware reset |
+| `BL` | `3.3V` | Always-on backlight |
+| `VCC` | `3.3V` or `5V` | Follow the module PCB marking |
+| `GND` | `GND` | Common ground |
+
+To free the hardware SPI pins, the external status LED is connected to `D1 / GPIO5` and the buzzer to `D0 / GPIO16`. Rewire both components before installing this firmware. Do not upload the firmware to hardware that still uses the previous `D6` and `D7` actuator wiring.

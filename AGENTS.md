@@ -8,6 +8,7 @@ This repository contains firmware for a NodeMCU v2 / ESP8266 smart-home server. 
 - serves a dashboard from LittleFS;
 - accepts sensor updates over HTTP;
 - pushes the current sensor state to browsers over WebSocket;
+- rotates the six sensor readings on a local 2.8-inch ST7789V display;
 - reports lifecycle events through LED, buzzer, serial, and WebSocket observers;
 - supports Arduino OTA updates.
 
@@ -21,6 +22,7 @@ The project is built with PlatformIO. The `nodemcuv2` environment builds Arduino
 - `include/config/` and `src/config/` separate tracked device configuration from local secrets.
 - `include/infrastructure/` and `src/infrastructure/` contain ESP8266 network/clock adapters, LittleFS, OTA, WebSocket, and actuator adapters.
 - `include/presentation/` and `src/presentation/` contain HTTP routes and event observers.
+- `include/application/display/` and `src/application/display/` contain the device-independent display rotation controller; `infrastructure/display/` renders it on the ST7789V hardware.
 - `data/` is the LittleFS web application deployed separately from firmware.
 - `test/` contains PlatformIO native tests for device-independent firmware logic.
 - `tests/browser.cjs` exercises the LittleFS dashboard contract in a headless Chromium browser.
@@ -75,6 +77,7 @@ If `pio` is unavailable, report that verification limitation rather than install
 5. Each successful operation emits saved-value events and exactly one `WEB_SOCKET_NOTIFY_CLIENT` event.
 6. `WsDataTransformer` serializes all six dashboard values as two-decimal strings using the DOM IDs `sliderValue1` through `sliderValue6`. It also sends each reading's age in whole minutes as `sliderValueNAgeMinutes`, or `null` when that reading has never been updated.
 7. The dashboard connects to `/ws`, sends the exact command `getValues`, updates elements whose IDs match value keys, and refreshes the human-readable update ages locally once per minute.
+8. The local TFT display shows one fresh reading at a time in landscape orientation and advances every five seconds without blocking the main loop. Missing and hour-old readings are skipped; they remain available in the web dashboard.
 
 `EventNotifier` dispatches synchronously, rejects null and duplicate observer registrations, and does not own observers. Event message pointers are valid only for the duration of each `Observer::update()` call.
 
