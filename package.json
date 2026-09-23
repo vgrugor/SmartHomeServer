@@ -1,0 +1,13 @@
+{
+  "name": "smart-home-server-dashboard-tests",
+  "private": true,
+  "scripts": {
+    "test:browser": "node tests/browser.cjs"
+  },
+  "devDependencies": {
+    "playwright": "1.62.1"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

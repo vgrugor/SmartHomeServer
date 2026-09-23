@@ -10,8 +10,8 @@
 
         public:
             ExternalLedActuator(int pin);
+            void begin() override;
             void setState(bool state) override;
-            void update() override;
     };
 
 #endif // LED_ACTUATOR_H

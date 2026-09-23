@@ -27,26 +27,37 @@ void WebSocket::handleEvent(AsyncWebSocket* server, AsyncWebSocketClient* client
             break;
         case WS_EVT_DATA:
             Serial.println("WebSocket client event WS_EVT_DATA");
-            this->handleMessage(arg, data, len);
+            this->handleMessage(client, arg, data, len);
             break;
         case WS_EVT_PONG:
+        case WS_EVT_PING:
         case WS_EVT_ERROR:
             break;
     }
 }
 
-void WebSocket::handleMessage(void* arg, uint8_t* data, size_t len) {
+void WebSocket::handleMessage(AsyncWebSocketClient* client, void* arg, const uint8_t* data, size_t len) {
     AwsFrameInfo* info = (AwsFrameInfo*)arg;
     if (info->final && info->index == 0 && info->len == len && info->opcode == WS_TEXT) {
-        data[len] = 0;
-        String message = (char*)data;
-
-        this->notifyClients();
+        if (
+            this->wsMessageHandler.handle(
+                reinterpret_cast<const char*>(data),
+                len
+            ) == WsMessageType::GET_VALUES
+        ) {
+            this->notifyClient(client);
+        }
     }
 }
 
+void WebSocket::notifyClient(AsyncWebSocketClient* client) {
+    const std::string payload = this->wsDataTransformer.toJSON();
+    client->text(payload.c_str(), payload.length());
+}
+
 void WebSocket::notifyClients() {
-    this->webSocket.textAll(this->wsDataTransformer.toJSON());
+    const std::string payload = this->wsDataTransformer.toJSON();
+    this->webSocket.textAll(payload.c_str(), payload.length());
 }
 
 AsyncWebSocket* WebSocket::getWebSocketObject() {

@@ -1,19 +1,20 @@
 #include "presentation/WebServer.h"
+#include <cstdlib>
 
 WebServer::WebServer(
-    WebSocket& webSocket, 
+    WebSocket& webSocket,
     FileSystem& fileSystem,
-    SensorData& sensorData
-) : server(80), 
-    webSocket(webSocket), 
+    SensorUpdateService& sensorUpdateService
+) : server(80),
+    webSocket(webSocket),
     fileSystem(fileSystem),
-    sensorData(sensorData)
+    sensorUpdateService(sensorUpdateService)
 {}
 
 void WebServer::begin() {
     server.addHandler(webSocket.getWebSocketObject());
 
-    server.serveStatic("/", LittleFS, "/");
+    server.serveStatic("/", this->fileSystem.get(), "/");
 
     server.on("/", HTTP_GET, [this](AsyncWebServerRequest* request) {
         this->handleRoot(request);
@@ -26,12 +27,21 @@ void WebServer::begin() {
     server.on("/house/temperature", HTTP_GET, [this](AsyncWebServerRequest* request) {
         this->handleHouseTemperature(request);
     });
+    server.on("/house/temperature", HTTP_POST, [this](AsyncWebServerRequest* request) {
+        this->handleHouseTemperature(request);
+    });
 
     server.on("/outdoor/temperature", HTTP_GET, [this](AsyncWebServerRequest* request) {
         this->handleOutdoorTemperature(request);
     });
+    server.on("/outdoor/temperature", HTTP_POST, [this](AsyncWebServerRequest* request) {
+        this->handleOutdoorTemperature(request);
+    });
 
     server.on("/shower/update", HTTP_GET, [this](AsyncWebServerRequest* request) {
+        this->handleShowerUpdate(request);
+    });
+    server.on("/shower/update", HTTP_POST, [this](AsyncWebServerRequest* request) {
         this->handleShowerUpdate(request);
     });
 
@@ -39,60 +49,79 @@ void WebServer::begin() {
 }
 
 void WebServer::handleRoot(AsyncWebServerRequest* request) {
-    request->send(LittleFS, "/index.html", "text/html");
+    request->send(this->fileSystem.get(), "/index.html", "text/html");
 }
 
 void WebServer::handleHouseTemperature(AsyncWebServerRequest* request) {
-    if (request->hasParam(TEMPERATURE_HOUSE_PARAM_NAME)) {
-        const AsyncWebParameter* temp = request->getParam(TEMPERATURE_HOUSE_PARAM_NAME);
-
-        this->sensorData.setValue(SensorType::HOUSE_TEMP, temp->value().toFloat());
-
-        request->send(200, "text/plain", "Temperature received");
-
-        EventNotifier::getInstance().notifyObservers(EventType::WEB_SOCKET_NOTIFY_CLIENT);
-    } else {
-        request->send(400, "text/plain", "Missing temperature value");
+    float temperature;
+    if (
+        !this->parseFloatParam(request, TEMPERATURE_HOUSE_PARAM_NAME, temperature)
+        || !this->sensorUpdateService.updateValue(SensorType::HOUSE_TEMP, temperature)
+    ) {
+        request->send(400, "text/plain", "Missing or invalid temperature value");
+        return;
     }
+
+    request->send(200, "text/plain", "Temperature received");
 }
 
 void WebServer::handleOutdoorTemperature(AsyncWebServerRequest* request) {
-    if (request->hasParam(TEMPERATURE_OUTDOOR_PARAM_NAME)) {
-        const AsyncWebParameter* temp = request->getParam(TEMPERATURE_OUTDOOR_PARAM_NAME);
-
-        this->sensorData.setValue(SensorType::OUTDOOR_TEMP, temp->value().toFloat());
-
-        request->send(200, "text/plain", "Temperature received");
-
-        EventNotifier::getInstance().notifyObservers(EventType::WEB_SOCKET_NOTIFY_CLIENT);
-    } else {
-        request->send(400, "text/plain", "Missing temperature value");
+    float temperature;
+    if (
+        !this->parseFloatParam(request, TEMPERATURE_OUTDOOR_PARAM_NAME, temperature)
+        || !this->sensorUpdateService.updateValue(SensorType::OUTDOOR_TEMP, temperature)
+    ) {
+        request->send(400, "text/plain", "Missing or invalid temperature value");
+        return;
     }
+
+    request->send(200, "text/plain", "Temperature received");
 }
 
 void WebServer::handleShowerUpdate(AsyncWebServerRequest* request) {
-    if (
-        request->hasParam(TEMPERATURE_WATER_SHOWER_PARAM_NAME)
-        && request->hasParam(VOLUME_WATER_SHOWER_PARAM_NAME)
-        && request->hasParam(BATTERY_VOLTAGE_SHOWER_PARAM_NAME)
-        && request->hasParam(BATTERY_PERCENT_SHOWER_PARAM_NAME)
-    ) {
-        const AsyncWebParameter* temp = request->getParam(TEMPERATURE_WATER_SHOWER_PARAM_NAME);
-        const AsyncWebParameter* liter = request->getParam(VOLUME_WATER_SHOWER_PARAM_NAME);
-        const AsyncWebParameter* voltage = request->getParam(BATTERY_VOLTAGE_SHOWER_PARAM_NAME);
-        const AsyncWebParameter* percent = request->getParam(BATTERY_PERCENT_SHOWER_PARAM_NAME);
+    float temperature;
+    float liters;
+    float voltage;
+    float percent;
 
-        this->sensorData.setValue(SensorType::WATER_TEMP, temp->value().toFloat());
-        this->sensorData.setValue(SensorType::WATER_LEVEL_LITER, liter->value().toFloat());
-        this->sensorData.setValue(SensorType::BATTERY_VOLTAGE, voltage->value().toFloat());
-        this->sensorData.setValue(SensorType::BATTERY_PERCENT, percent->value().toFloat());
+    const bool isValid =
+        this->parseFloatParam(request, TEMPERATURE_WATER_SHOWER_PARAM_NAME, temperature)
+        && this->parseFloatParam(request, VOLUME_WATER_SHOWER_PARAM_NAME, liters)
+        && this->parseFloatParam(request, BATTERY_VOLTAGE_SHOWER_PARAM_NAME, voltage)
+        && this->parseFloatParam(request, BATTERY_PERCENT_SHOWER_PARAM_NAME, percent)
+        && this->sensorUpdateService.updateShower(temperature, liters, voltage, percent);
 
-        request->send(200, "text/plain", "Data received");
-
-        EventNotifier::getInstance().notifyObservers(EventType::WEB_SOCKET_NOTIFY_CLIENT);
-    } else {
-        request->send(400, "text/plain", "Missing temperature value");
+    if (!isValid) {
+        request->send(400, "text/plain", "Missing or invalid shower data");
+        return;
     }
+
+    request->send(200, "text/plain", "Data received");
 }
 
-void WebServer::handleClient() {}
+bool WebServer::parseFloatParam(
+    AsyncWebServerRequest* request,
+    const String& name,
+    float& value
+) const {
+    const AsyncWebParameter* parameter = nullptr;
+
+    if (request->hasParam(name)) {
+        parameter = request->getParam(name);
+    } else if (request->hasParam(name, true)) {
+        parameter = request->getParam(name, true);
+    } else {
+        return false;
+    }
+
+    const String rawValue = parameter->value();
+    if (rawValue.length() == 0) {
+        return false;
+    }
+
+    char* end = nullptr;
+    const char* start = rawValue.c_str();
+    value = strtof(start, &end);
+
+    return end != start && *end == '\0';
+}

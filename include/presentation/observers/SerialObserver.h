@@ -2,12 +2,11 @@
     #define SERIAL_OBSERVER_H
 
     #include <Arduino.h>
-    #include "Observer.h"
-    #include "presentation/EventType.h"
+    #include "application/events/Observer.h"
 
     class SerialObserver : public Observer {
         public:
-            void update(EventType eventType, const String& message = "") override;
+            void update(EventType eventType, const char* message = "") override;
     };
 
 #endif // SERIAL_OBSERVER_H

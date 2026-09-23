@@ -1,10 +1,10 @@
 #ifndef ACTUATOR_H
     #define ACTUATOR_H
 
-    #include "domain/Device.h"
-
-    class Actuator : public Device {
+    class Actuator {
         public:
+            virtual ~Actuator() = default;
+            virtual void begin() = 0;
             virtual void setState(bool state) = 0;
     };
 

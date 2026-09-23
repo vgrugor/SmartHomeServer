@@ -1,48 +1,18 @@
 #include "application/WsMessageHandler.h"
+#include <cstring>
 
-WsMessageHandler::WsMessageHandler() 
-{}
+WsMessageType WsMessageHandler::handle(const char* message, size_t length) const {
+    static const char GET_VALUES_COMMAND[] = "getValues";
+    static const size_t GET_VALUES_LENGTH = sizeof(GET_VALUES_COMMAND) - 1;
 
-bool WsMessageHandler::handle(String message) {
-    bool result = false;
-
-    String messageValue = message.substring(2);
-    int value = messageValue.toInt();
-
-    if (message.indexOf("1s") >= 0) {
-        //this->lightManagerService.changeAllLedMatrixLevel(value);
-
-        result = true;
+    if (
+        message != nullptr
+        && length <= MAX_MESSAGE_LENGTH
+        && length == GET_VALUES_LENGTH
+        && std::memcmp(message, GET_VALUES_COMMAND, GET_VALUES_LENGTH) == 0
+    ) {
+        return WsMessageType::GET_VALUES;
     }
 
-    if (message.indexOf("2s") >= 0) {
-        //this->lightManagerService.changeTimerMinute(value);
-
-        result = true;
-    }
-
-    if (message.indexOf("3s") >= 0) {
-        //this->lightManagerService.changeFrontLedMatrixLevel(value);
-
-        result = true;
-    }
-
-    if (message.indexOf("4s") >= 0) {
-        //this->lightManagerService.changeMiddleLedMatrixLevel(value);
-
-        result = true;
-    }
-
-    if (message.indexOf("5s") >= 0) {
-        //this->lightManagerService.changeBackLedMatrixLevel(value);
-
-        result = true;
-    }
-
-    if (message.indexOf("getValues") >= 0) {
-
-        result = true;
-    }
-
-    return result;
+    return WsMessageType::UNKNOWN;
 }

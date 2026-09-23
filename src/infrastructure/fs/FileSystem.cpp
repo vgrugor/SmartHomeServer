@@ -1,7 +1,13 @@
 #include "infrastructure/fs/FileSystem.h"
 
-FileSystem::FileSystem() {
-    LittleFS.begin();
+FileSystem::FileSystem() {}
+
+bool FileSystem::begin() {
+    return LittleFS.begin();
+}
+
+fs::FS& FileSystem::get() {
+    return LittleFS;
 }
 
 bool FileSystem::writeFile(const String& path, const String& data) {

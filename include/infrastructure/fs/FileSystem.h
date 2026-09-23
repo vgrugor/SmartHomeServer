@@ -7,6 +7,8 @@
     class FileSystem {
         public:
             FileSystem();
+            bool begin();
+            fs::FS& get();
             bool writeFile(const String& path, const String& data);
             String readFile(const String& path);
             bool deleteFile(const String& path);

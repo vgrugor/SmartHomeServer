@@ -1,8 +1,8 @@
 #include "presentation/observers/LedObserver.h"
 
-LedObserver::LedObserver(ExternalLedActuator externalLedActuator) : externalLedActuator(externalLedActuator) {}
+LedObserver::LedObserver(ExternalLedActuator& externalLedActuator) : externalLedActuator(externalLedActuator) {}
 
-void LedObserver::update(EventType eventType, const String& message) {
+void LedObserver::update(EventType eventType, const char* message) {
     switch (eventType) {
         //WIFI events
         case EventType::WIFI_START_CONNECT: 
@@ -15,7 +15,10 @@ void LedObserver::update(EventType eventType, const String& message) {
             this->externalLedActuator.setState(LOW);
 
             break;
-        case EventType::WIFI_RECONNECT: 
+        case EventType::WIFI_RECONNECT:
+            this->externalLedActuator.setState(HIGH);
+            break;
+        default:
             break;
     }
 }
