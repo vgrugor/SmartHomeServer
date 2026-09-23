@@ -9,11 +9,13 @@
 #include "application/WsMessageHandler.h"
 #include "application/SensorUpdateService.h"
 #include "application/SensorValueValidator.h"
+#include "application/display/SensorDisplayController.h"
 #include "infrastructure/web/WebSocket.h"
 #include "presentation/WebServer.h"
 #include "presentation/SensorUpdateEventNotifier.h"
 #include "infrastructure/actuators/BuzzerActuator.h"
 #include "infrastructure/actuators/ExternalLedActuator.h"
+#include "infrastructure/display/St7789Display.h"
 #include "application/events/EventNotifier.h"
 #include "presentation/observers/BuzzerObserver.h"
 #include "presentation/observers/LedObserver.h"
@@ -52,6 +54,17 @@ WebServer webServer(webSocket, fileSystem, sensorUpdateService);
 
 ExternalLedActuator externalLedActuator(GREEN_LED_PIN);
 BuzzerActuator buzzerActuator(BUZZER_PIN);
+St7789Display dashboardDisplay(
+    TFT_CHIP_SELECT_PIN,
+    TFT_DATA_COMMAND_PIN,
+    TFT_RESET_PIN
+);
+SensorDisplayController displayController(
+    sensorData,
+    systemClock,
+    dashboardDisplay,
+    TFT_PAGE_DURATION_MS
+);
 
 LedObserver ledObserver(externalLedActuator);
 BuzzerObserver buzzerObserver(buzzerActuator);
@@ -66,6 +79,7 @@ void setup() {
 
     externalLedActuator.begin();
     buzzerActuator.begin();
+    displayController.begin();
 
     if (!fileSystem.begin()) {
         Serial.println("Failed to mount LittleFS");
@@ -81,6 +95,7 @@ void setup() {
 
 void loop() {
     wifiManager.update();
+    displayController.update();
 
     if (wifiManager.isConnected() && !networkServicesStarted) {
         webServer.begin();

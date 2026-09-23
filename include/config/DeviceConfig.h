@@ -5,6 +5,10 @@
 
 extern const int GREEN_LED_PIN;
 extern const int BUZZER_PIN;
+extern const int TFT_CHIP_SELECT_PIN;
+extern const int TFT_DATA_COMMAND_PIN;
+extern const int TFT_RESET_PIN;
+extern const uint32_t TFT_PAGE_DURATION_MS;
 
 extern const String TEMPERATURE_HOUSE_PARAM_NAME;
 extern const String TEMPERATURE_OUTDOOR_PARAM_NAME;
