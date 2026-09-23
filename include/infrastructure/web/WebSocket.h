@@ -4,7 +4,7 @@
     #include <Arduino.h>
     #include <ESPAsyncWebServer.h>
     #include "application/WsMessageHandler.h"
-    #include "application/WsDataTransformer.h"
+    #include "application/WSDataTransformer.h"
 
     class WebSocket {
     private:
