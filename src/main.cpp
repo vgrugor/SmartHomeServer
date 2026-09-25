@@ -21,6 +21,10 @@
 #include "presentation/observers/WebSocketObserver.h"
 #include "infrastructure/loaders/OTALoader.h"
 #include "domain/SensorData.h"
+#include "application/reporting/DailyTemperatureReporter.h"
+#include "infrastructure/reporting/EepromSentDateStore.h"
+#include "infrastructure/reporting/TelegramBotSender.h"
+#include "infrastructure/time/KyivDateTimeSource.h"
 
 EventNotifier& eventNotifier = EventNotifier::getInstance();
 
@@ -36,6 +40,12 @@ WiFiConnectionManager wifiManager(wifiConnection, systemClock, eventNotifier);
 FileSystem fileSystem;
 
 SensorData sensorData;
+KyivDateTimeSource kyivDateTime;
+EepromSentDateStore sentDateStore;
+TelegramBotSender telegramBotSender(TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID);
+DailyTemperatureReporter dailyTemperatureReporter(
+    sensorData, kyivDateTime, systemClock, telegramBotSender, sentDateStore
+);
 SensorValueValidator sensorValueValidator;
 SensorUpdateEventNotifier sensorUpdateEventNotifier;
 SensorUpdateService sensorUpdateService(
@@ -48,7 +58,7 @@ SensorUpdateService sensorUpdateService(
 WsDataTransformer wsDataTransformer(sensorData, systemClock);
 WsMessageHandler wsMessageHandler;
 WebSocket webSocket(wsMessageHandler, wsDataTransformer);
-WebServer webServer(webSocket, fileSystem, sensorUpdateService);
+WebServer webServer(webSocket, fileSystem, sensorUpdateService, dailyTemperatureReporter);
 
 ExternalLedActuator externalLedActuator(GREEN_LED_PIN);
 BuzzerActuator buzzerActuator(BUZZER_PIN);
@@ -70,6 +80,9 @@ void setup() {
     if (!fileSystem.begin()) {
         Serial.println("Failed to mount LittleFS");
     }
+    if (!dailyTemperatureReporter.begin()) {
+        Serial.println("Failed to load Telegram report state; daily reports disabled");
+    }
 
     eventNotifier.addObserver(&ledObserver);
     eventNotifier.addObserver(&buzzerObserver);
@@ -83,6 +96,7 @@ void loop() {
     wifiManager.update();
 
     if (wifiManager.isConnected() && !networkServicesStarted) {
+        kyivDateTime.begin();
         webServer.begin();
         OTA.begin();
         networkServicesStarted = true;
@@ -91,4 +105,6 @@ void loop() {
     if (networkServicesStarted) {
         OTA.handle();
     }
+
+    dailyTemperatureReporter.update(wifiManager.isConnected());
 }

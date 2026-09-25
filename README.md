@@ -5,12 +5,14 @@ Firmware for a NodeMCU v2 / ESP8266 home controller. The controller receives ind
 ## Features
 
 - ESP8266 Wi-Fi connection with a static IP address;
+- DNS via the configured gateway for NTP and Telegram hostname resolution;
 - LittleFS-hosted web dashboard;
 - sensor updates over HTTP;
 - real-time browser synchronization over WebSocket;
 - last-update age for every displayed parameter;
 - LED, buzzer, Serial, and WebSocket event notifications;
 - Arduino OTA updates for firmware and LittleFS;
+- a daily indoor/outdoor temperature report through a Telegram bot;
 - native unit tests and dashboard browser tests.
 
 ## Hardware and software
@@ -53,6 +55,7 @@ See `AGENTS.md` for detailed architectural contracts and instructions for coding
    - Wi-Fi name and password;
    - controller IP address, gateway, and subnet;
    - Arduino OTA hostname and password.
+   - Telegram bot token and destination chat ID for the daily report.
 
 `src/config/Secrets.cpp` is ignored by Git. Never commit real credentials or add them to CI or tracked configuration examples.
 
@@ -123,6 +126,18 @@ The WebSocket endpoint is `ws://DEVICE_IP/ws`. After connecting, send the exact 
 ```
 
 Sensor values are strings formatted to two decimal places. Each `AgeMinutes` field contains the number of complete minutes since that reading was updated, or `null` if the reading has never been received. The dashboard displays minutes, hours with minutes, or rounded days and advances the displayed age locally once per minute. Readings that have never been updated or are at least 60 minutes old are shown in muted gray until fresh data arrives.
+
+## Daily Telegram report
+
+Set `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_ID` in the ignored `src/config/Secrets.cpp`. Start a conversation with the bot (or add it to the destination group) so it can send messages there. Do not put the token in tracked files or CI.
+
+At or after 15:00 Europe/Kyiv each day, the controller sends one message containing the current indoor and outdoor temperatures and the actual local send time. It waits for Wi-Fi, synchronized time, and both temperature readings. If power is off at 15:00, it sends after the controller restarts and receives both readings. Failed requests retry every five minutes. A confirmed delivery date is stored in ESP8266 EEPROM emulation, so an ordinary reboot or LittleFS upload does not reset the daily marker. If the marker is unreadable, reports are disabled to avoid accidental duplicates.
+
+The bot connection uses HTTPS certificate validation. Its trust anchor is in `include/infrastructure/reporting/TelegramRootCa.h`; if Telegram changes certificate authorities, the anchor may need updating. The HTTPS request can briefly delay other `loop()` work while a send is in progress.
+
+Telegram's `sendMessage` API does not provide a caller-supplied idempotency key. A power loss after Telegram accepts a message but before the EEPROM commit, or an ambiguous network timeout after acceptance, can therefore still cause a duplicate. The firmware prevents repeats after a confirmed, persisted send, but cannot guarantee exactly-once delivery across those failure windows.
+
+`GET /telegram/report/status` returns `lastSentDate` (a `YYYYMMDD` integer, or `0` if none), storage readiness, local-time validity, reading availability, last send attempt result, and a transport status code. It exposes no bot credentials or chat ID and can be used to verify that a confirmed delivery was persisted. A negative transport code indicates a local connection/setup error; HTTP `200` plus `lastAttemptSucceeded: true` indicates Telegram accepted the message.
 
 ## Uploading to a device
 

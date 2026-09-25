@@ -4,6 +4,7 @@
     #include <Arduino.h>
     #include <ESPAsyncWebServer.h>
     #include "application/SensorUpdateService.h"
+    #include "application/reporting/DailyTemperatureReporter.h"
     #include "infrastructure/fs/FileSystem.h"
     #include "infrastructure/web/WebSocket.h"
     #include "config/DeviceConfig.h"
@@ -14,6 +15,7 @@
             WebSocket& webSocket;
             FileSystem& fileSystem;
             SensorUpdateService& sensorUpdateService;
+            DailyTemperatureReporter& dailyTemperatureReporter;
             void handleRoot(AsyncWebServerRequest* request);
             void handleHouseTemperature(AsyncWebServerRequest* request);
             void handleOutdoorTemperature(AsyncWebServerRequest* request);
@@ -24,7 +26,8 @@
             WebServer(
                 WebSocket& webSocket,
                 FileSystem& fileSystem,
-                SensorUpdateService& sensorUpdateService
+                SensorUpdateService& sensorUpdateService,
+                DailyTemperatureReporter& dailyTemperatureReporter
             );
             void begin();
     };

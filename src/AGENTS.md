@@ -6,6 +6,7 @@ These instructions apply to implementation files under `src/`. Also follow the r
 
 - `domain/` owns sensor state and domain abstractions. Avoid ESP8266 networking or presentation concerns here.
 - `application/` owns sensor update/validation use cases, translates application messages, defines event contracts used across adapters, and controls Wi-Fi connection state/timing through abstract network and clock interfaces. Keep JSON field names compatible with `data/script.js` and `data/index.html`.
+- `application/reporting/` owns the daily send policy and retry timing through injected time, sender, and storage interfaces; keep Telegram, EEPROM, and NTP details in infrastructure adapters.
 - `config/` contains tracked device behavior and the ignored local secrets implementation.
 - `infrastructure/` wraps hardware, storage, ESP8266 connectivity and time, WebSocket transport, and OTA. Keep retry policy out of these adapters.
 - `presentation/` owns HTTP endpoints and event observers.
