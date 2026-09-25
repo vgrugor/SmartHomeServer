@@ -18,8 +18,10 @@ The project is built with PlatformIO. The `nodemcuv2` environment builds Arduino
 - `src/main.cpp` is the composition root and contains Arduino `setup()` / `loop()`.
 - `include/domain/` and `src/domain/` hold device-independent data types and state.
 - `include/application/` and `src/application/` hold sensor update use cases, validation, WebSocket transformations, application event contracts, and the device-independent Wi-Fi connection state machine.
+- `include/application/reporting/` and `src/application/reporting/` hold the device-independent daily Telegram scheduling policy.
 - `include/config/` and `src/config/` separate tracked device configuration from local secrets.
 - `include/infrastructure/` and `src/infrastructure/` contain ESP8266 network/clock adapters, LittleFS, OTA, WebSocket, and actuator adapters.
+- `infrastructure/reporting/` and `infrastructure/time/` provide EEPROM, HTTPS, and Kyiv local-time adapters.
 - `include/presentation/` and `src/presentation/` contain HTTP routes and event observers.
 - `data/` is the LittleFS web application deployed separately from firmware.
 - `test/` contains PlatformIO native tests for device-independent firmware logic.
@@ -75,6 +77,7 @@ If `pio` is unavailable, report that verification limitation rather than install
 5. Each successful operation emits saved-value events and exactly one `WEB_SOCKET_NOTIFY_CLIENT` event.
 6. `WsDataTransformer` serializes all six dashboard values as two-decimal strings using the DOM IDs `sliderValue1` through `sliderValue6`. It also sends each reading's age in whole minutes as `sliderValueNAgeMinutes`, or `null` when that reading has never been updated.
 7. The dashboard connects to `/ws`, sends the exact command `getValues`, updates elements whose IDs match value keys, and refreshes the human-readable update ages locally once per minute.
+8. The daily Telegram report sends indoor and outdoor temperatures at or after 15:00 Europe/Kyiv, once per local date after both readings and NTP time are available. It persists the confirmed date in EEPROM, not LittleFS, and retries failed sends every five minutes.
 
 `EventNotifier` dispatches synchronously, rejects null and duplicate observer registrations, and does not own observers. Event message pointers are valid only for the duration of each `Observer::update()` call.
 
@@ -90,6 +93,7 @@ Public HTTP routes currently include:
 - `POST /outdoor/temperature`
 - `GET /shower/update`
 - `POST /shower/update`
+- `GET /telegram/report/status` (confirmed report date and storage state; no credentials)
 - WebSocket `/ws`
 
 The query-parameter names are configuration constants declared in `include/config/DeviceConfig.h`. When changing a route or JSON key, update the C++ handler/transformer and the browser code together.
