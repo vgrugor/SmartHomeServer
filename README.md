@@ -10,7 +10,7 @@ Firmware for a NodeMCU v2 / ESP8266 home controller. The controller receives ind
 - sensor updates over HTTP;
 - real-time browser synchronization over WebSocket;
 - last-update age for every displayed parameter;
-- rotating full-screen sensor readings on a 2.8-inch ST7789V TFT;
+- a two-page portrait dashboard on a 2.8-inch ST7789V TFT;
 - LED, buzzer, Serial, and WebSocket event notifications;
 - Arduino OTA updates for firmware and LittleFS;
 - a daily indoor/outdoor temperature report through a Telegram bot;
@@ -170,7 +170,7 @@ Changes under `src/` or `include/` require a firmware upload. Changes under `dat
 
 ## Local ST7789V display
 
-The firmware supports the 2.8-inch 240×320 SPI ST7789V module in landscape orientation. It shows one reading at a time using the largest text that fits and advances every five seconds. Missing values and readings that are at least one hour old are excluded from the rotation and remain available only in the web dashboard. The display shows `NO FRESH DATA` when no current readings are available.
+The firmware supports the 2.8-inch 240×320 SPI ST7789V module in portrait orientation. The first page shows indoor temperature above outdoor temperature, marked with a house and a sun icon. The second page shows shower water temperature, water volume, battery voltage, and battery percentage. The pages alternate every five seconds when both are available. A reading is fresh for less than one hour; stale or missing temperatures appear as dashes rather than values, and the shower page is shown only when all four shower readings are fresh. If only one page is available, it stays on screen. If neither page is available, the display shows `NO FRESH DATA`. Stale values remain available in the web dashboard.
 
 Connect the display as follows:
 

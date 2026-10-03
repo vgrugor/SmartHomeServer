@@ -1,24 +1,24 @@
 #include "application/display/SensorDisplayController.h"
 
 namespace {
-    struct PageDefinition {
-        SensorType type;
-        const char* label;
-        const char* unit;
-        uint8_t decimalPlaces;
-    };
+    const uint8_t PAGE_COUNT = 2;
+    const uint32_t STALE_AFTER_MS = 60UL * 60000UL;
 
-    const PageDefinition PAGES[] = {
-        {SensorType::HOUSE_TEMP, "HOUSE", "C", 1},
-        {SensorType::OUTDOOR_TEMP, "OUTSIDE", "C", 1},
-        {SensorType::WATER_TEMP, "SHOWER", "C", 1},
-        {SensorType::WATER_LEVEL_LITER, "WATER", "L", 0},
-        {SensorType::BATTERY_VOLTAGE, "BATTERY VOLT", "V", 1},
-        {SensorType::BATTERY_PERCENT, "BATTERY LEVEL", "%", 0},
-    };
+    bool sameReading(const DisplayReading& left, const DisplayReading& right) {
+        return left.available == right.available
+            && (!left.available || (left.value == right.value
+                && left.ageMinutes == right.ageMinutes));
+    }
 
-    const uint8_t PAGE_COUNT = sizeof(PAGES) / sizeof(PAGES[0]);
-    const uint32_t STALE_AFTER_MINUTES = 60;
+    bool samePage(const SensorDisplayPage& left, const SensorDisplayPage& right) {
+        return left.kind == right.kind
+            && sameReading(left.houseTemperature, right.houseTemperature)
+            && sameReading(left.outdoorTemperature, right.outdoorTemperature)
+            && sameReading(left.showerTemperature, right.showerTemperature)
+            && sameReading(left.showerVolume, right.showerVolume)
+            && sameReading(left.batteryVoltage, right.batteryVoltage)
+            && sameReading(left.batteryPercent, right.batteryPercent);
+    }
 }
 
 SensorDisplayController::SensorDisplayController(
@@ -31,9 +31,11 @@ SensorDisplayController::SensorDisplayController(
     view(view),
     pageDurationMs(pageDurationMs),
     lastPageChangeMs(0),
-    lastRenderedUpdateMs(0),
     currentPageIndex(0),
-    hasCurrentPage(false)
+    hasCurrentPage(false),
+    showingNoData(false),
+    hasRenderedPage(false),
+    lastRenderedPage({})
 {}
 
 void SensorDisplayController::begin() {
@@ -51,12 +53,12 @@ void SensorDisplayController::update() {
             this->currentPageIndex = nextPageIndex;
             this->hasCurrentPage = true;
             this->lastPageChangeMs = nowMs;
-            this->renderCurrentPage(nowMs);
+            this->renderCurrentPage(nowMs, true);
         }
         return;
     }
 
-    if (!this->isFresh(this->currentPageIndex, nowMs)) {
+    if (!this->isPageAvailable(this->currentPageIndex, nowMs)) {
         this->lastPageChangeMs = nowMs;
         this->showNextFreshPage(this->currentPageIndex + 1, nowMs);
         return;
@@ -68,17 +70,25 @@ void SensorDisplayController::update() {
         return;
     }
 
-    const SensorType currentType = PAGES[this->currentPageIndex].type;
-    const uint32_t updatedAtMs = this->sensorData.getUpdatedAtMs(currentType);
-    if (updatedAtMs != this->lastRenderedUpdateMs) {
-        this->renderCurrentPage(nowMs);
-    }
+    this->renderCurrentPage(nowMs);
 }
 
-bool SensorDisplayController::isFresh(uint8_t pageIndex, uint32_t nowMs) const {
-    const SensorType type = PAGES[pageIndex].type;
+bool SensorDisplayController::isReadingFresh(SensorType type, uint32_t nowMs) const {
     return this->sensorData.hasKey(type)
-        && (nowMs - this->sensorData.getUpdatedAtMs(type)) / 60000UL < STALE_AFTER_MINUTES;
+        && nowMs - this->sensorData.getUpdatedAtMs(type) < STALE_AFTER_MS;
+}
+
+bool SensorDisplayController::isPageAvailable(uint8_t pageIndex, uint32_t nowMs) const {
+    if (pageIndex == 0) {
+        return this->isReadingFresh(SensorType::HOUSE_TEMP, nowMs)
+            || this->isReadingFresh(SensorType::OUTDOOR_TEMP, nowMs);
+    }
+
+    // A shower update supplies all four values together. Never show a partial batch.
+    return this->isReadingFresh(SensorType::WATER_TEMP, nowMs)
+        && this->isReadingFresh(SensorType::WATER_LEVEL_LITER, nowMs)
+        && this->isReadingFresh(SensorType::BATTERY_VOLTAGE, nowMs)
+        && this->isReadingFresh(SensorType::BATTERY_PERCENT, nowMs);
 }
 
 bool SensorDisplayController::findNextFreshPage(
@@ -88,7 +98,7 @@ bool SensorDisplayController::findNextFreshPage(
 ) const {
     for (uint8_t offset = 0; offset < PAGE_COUNT; offset++) {
         const uint8_t pageIndex = (startIndex + offset) % PAGE_COUNT;
-        if (this->isFresh(pageIndex, nowMs)) {
+        if (this->isPageAvailable(pageIndex, nowMs)) {
             result = pageIndex;
             return true;
         }
@@ -104,28 +114,56 @@ void SensorDisplayController::showNextFreshPage(
     uint8_t nextPageIndex;
     if (!this->findNextFreshPage(startIndex, nowMs, nextPageIndex)) {
         this->hasCurrentPage = false;
-        this->lastRenderedUpdateMs = 0;
-        this->view.showNoFreshData();
+        this->hasRenderedPage = false;
+        if (!this->showingNoData) {
+            this->view.showNoFreshData();
+            this->showingNoData = true;
+        }
         return;
     }
 
+    const bool pageChanged = !this->hasCurrentPage
+        || this->currentPageIndex != nextPageIndex;
     this->currentPageIndex = nextPageIndex;
     this->hasCurrentPage = true;
-    this->renderCurrentPage(nowMs);
+    this->renderCurrentPage(nowMs, pageChanged || this->showingNoData);
 }
 
-void SensorDisplayController::renderCurrentPage(uint32_t nowMs) {
-    const PageDefinition& definition = PAGES[this->currentPageIndex];
-    const uint32_t updatedAtMs = this->sensorData.getUpdatedAtMs(definition.type);
-    const uint32_t ageMinutes = (nowMs - updatedAtMs) / 60000UL;
+DisplayReading SensorDisplayController::readingFor(SensorType type, uint32_t nowMs) const {
+    DisplayReading reading = {};
+    reading.available = this->isReadingFresh(type, nowMs);
+    if (reading.available) {
+        reading.value = this->sensorData.getValue(type);
+        reading.ageMinutes = (nowMs - this->sensorData.getUpdatedAtMs(type)) / 60000UL;
+    }
+    return reading;
+}
 
-    this->lastRenderedUpdateMs = updatedAtMs;
+SensorDisplayPage SensorDisplayController::makePage(
+    uint8_t pageIndex,
+    uint32_t nowMs
+) const {
+    SensorDisplayPage page = {};
+    if (pageIndex == 0) {
+        page.kind = SensorDisplayPageKind::TEMPERATURES;
+        page.houseTemperature = this->readingFor(SensorType::HOUSE_TEMP, nowMs);
+        page.outdoorTemperature = this->readingFor(SensorType::OUTDOOR_TEMP, nowMs);
+    } else {
+        page.kind = SensorDisplayPageKind::SHOWER;
+        page.showerTemperature = this->readingFor(SensorType::WATER_TEMP, nowMs);
+        page.showerVolume = this->readingFor(SensorType::WATER_LEVEL_LITER, nowMs);
+        page.batteryVoltage = this->readingFor(SensorType::BATTERY_VOLTAGE, nowMs);
+        page.batteryPercent = this->readingFor(SensorType::BATTERY_PERCENT, nowMs);
+    }
+    return page;
+}
 
-    this->view.show({
-        definition.label,
-        definition.unit,
-        this->sensorData.getValue(definition.type),
-        ageMinutes,
-        definition.decimalPlaces,
-    });
+void SensorDisplayController::renderCurrentPage(uint32_t nowMs, bool force) {
+    const SensorDisplayPage page = this->makePage(this->currentPageIndex, nowMs);
+    if (force || !this->hasRenderedPage || !samePage(page, this->lastRenderedPage)) {
+        this->view.show(page);
+        this->lastRenderedPage = page;
+        this->hasRenderedPage = true;
+    }
+    this->showingNoData = false;
 }

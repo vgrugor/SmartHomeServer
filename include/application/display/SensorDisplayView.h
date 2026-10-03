@@ -3,12 +3,22 @@
 
 #include <cstdint>
 
-struct SensorDisplayPage {
-    const char* label;
-    const char* unit;
+enum class SensorDisplayPageKind : uint8_t { TEMPERATURES, SHOWER };
+
+struct DisplayReading {
+    bool available;
     float value;
     uint32_t ageMinutes;
-    uint8_t decimalPlaces;
+};
+
+struct SensorDisplayPage {
+    SensorDisplayPageKind kind;
+    DisplayReading houseTemperature;
+    DisplayReading outdoorTemperature;
+    DisplayReading showerTemperature;
+    DisplayReading showerVolume;
+    DisplayReading batteryVoltage;
+    DisplayReading batteryPercent;
 };
 
 class SensorDisplayView {

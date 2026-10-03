@@ -8,7 +8,7 @@ This repository contains firmware for a NodeMCU v2 / ESP8266 smart-home server. 
 - serves a dashboard from LittleFS;
 - accepts sensor updates over HTTP;
 - pushes the current sensor state to browsers over WebSocket;
-- rotates the six sensor readings on a local 2.8-inch ST7789V display;
+- shows fresh temperatures and shower readings on a two-page portrait 2.8-inch ST7789V display;
 - sends a daily indoor/outdoor temperature report to Telegram;
 - reports lifecycle events through LED, buzzer, serial, and WebSocket observers;
 - supports Arduino OTA updates.
@@ -80,7 +80,7 @@ If `pio` is unavailable, report that verification limitation rather than install
 5. Each successful operation emits saved-value events and exactly one `WEB_SOCKET_NOTIFY_CLIENT` event.
 6. `WsDataTransformer` serializes all six dashboard values as two-decimal strings using the DOM IDs `sliderValue1` through `sliderValue6`. It also sends each reading's age in whole minutes as `sliderValueNAgeMinutes`, or `null` when that reading has never been updated.
 7. The dashboard connects to `/ws`, sends the exact command `getValues`, updates elements whose IDs match value keys, and refreshes the human-readable update ages locally once per minute.
-8. The local TFT display shows one fresh reading at a time in landscape orientation and advances every five seconds without blocking the main loop. Missing and hour-old readings are skipped; they remain available in the web dashboard.
+8. The local TFT display shows indoor/outdoor temperatures together on the first portrait page and all four shower readings on the second. It advances every five seconds without blocking the main loop when both pages have fresh data. A page with no fresh readings is skipped; the shower page requires all four fresh values. Stale values remain in the web dashboard.
 9. The daily Telegram report sends indoor and outdoor temperatures at or after 15:00 Europe/Kyiv, once per local date after both readings and NTP time are available. It persists the confirmed date in EEPROM, not LittleFS, and retries failed sends every five minutes.
 
 `EventNotifier` dispatches synchronously, rejects null and duplicate observer registrations, and does not own observers. Event message pointers are valid only for the duration of each `Observer::update()` call.
