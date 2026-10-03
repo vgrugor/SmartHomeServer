@@ -9,5 +9,7 @@ extern const char* WIFI_PASSWORD;
 extern const char* WIFI_IP;
 extern const char* WIFI_GATEWAY;
 extern const char* WIFI_SUBNET;
+extern const char* TELEGRAM_BOT_TOKEN;
+extern const char* TELEGRAM_CHAT_ID;
 
 #endif // SECRETS_H

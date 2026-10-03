@@ -24,7 +24,9 @@ void EspWiFiConnection::start() {
     subnet.fromString(this->subnet);
 
     WiFi.mode(WIFI_STA);
-    WiFi.config(ip, gateway, subnet);
+    // Static addressing does not obtain DNS from DHCP. Use the configured
+    // gateway as DNS so NTP and Telegram hostnames can resolve.
+    WiFi.config(ip, gateway, subnet, gateway);
     WiFi.setAutoReconnect(true);
     WiFi.begin(this->ssid, this->password);
 }

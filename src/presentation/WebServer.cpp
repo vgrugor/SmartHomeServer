@@ -4,11 +4,13 @@
 WebServer::WebServer(
     WebSocket& webSocket,
     FileSystem& fileSystem,
-    SensorUpdateService& sensorUpdateService
+    SensorUpdateService& sensorUpdateService,
+    DailyTemperatureReporter& dailyTemperatureReporter
 ) : server(80),
     webSocket(webSocket),
     fileSystem(fileSystem),
-    sensorUpdateService(sensorUpdateService)
+    sensorUpdateService(sensorUpdateService),
+    dailyTemperatureReporter(dailyTemperatureReporter)
 {}
 
 void WebServer::begin() {
@@ -43,6 +45,39 @@ void WebServer::begin() {
     });
     server.on("/shower/update", HTTP_POST, [this](AsyncWebServerRequest* request) {
         this->handleShowerUpdate(request);
+    });
+
+    server.on("/telegram/report/status", HTTP_GET, [this](AsyncWebServerRequest* request) {
+        LocalDateTime localNow = {};
+        const bool timeValid = this->dailyTemperatureReporter.getLocalNow(localNow);
+        const String body = String("{\"lastSentDate\":")
+            + this->dailyTemperatureReporter.getLastSentDate()
+            + ",\"ready\":"
+            + (this->dailyTemperatureReporter.isReady() ? "true" : "false")
+            + ",\"pendingSave\":"
+            + (this->dailyTemperatureReporter.hasPendingSave() ? "true" : "false")
+            + ",\"timeValid\":"
+            + (timeValid ? "true" : "false")
+            + ",\"localDate\":"
+            + (timeValid ? localNow.dateKey() : 0)
+            + ",\"localHour\":"
+            + (timeValid ? localNow.hour : -1)
+            + ",\"readingsReady\":"
+            + (this->dailyTemperatureReporter.hasBothReadings() ? "true" : "false")
+            + ",\"lastAttemptDate\":"
+            + this->dailyTemperatureReporter.getLastAttemptDate()
+            + ",\"lastAttemptSucceeded\":"
+            + (this->dailyTemperatureReporter.lastAttemptSucceeded() ? "true" : "false")
+            + ",\"lastTransportCode\":"
+            + this->dailyTemperatureReporter.getLastTransportCode()
+            + ",\"resetReason\":"
+            + ESP.getResetInfoPtr()->reason
+            + ",\"freeHeap\":"
+            + ESP.getFreeHeap()
+            + ",\"maxFreeBlock\":"
+            + ESP.getMaxFreeBlockSize()
+            + "}";
+        request->send(200, "application/json", body);
     });
 
     server.begin();
