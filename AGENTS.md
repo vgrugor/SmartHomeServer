@@ -1,5 +1,11 @@
 # SmartHomeServer agent guide
 
+## Shared engineering standard
+
+Follow [TECHNICAL_CONTEXT.md](TECHNICAL_CONTEXT.md), version 1.0.0, for shared code style, architecture, testing, README, and workflow requirements.
+
+The sections below provide project-specific instructions and runtime contracts. Any exception to the shared standard must be documented explicitly with its reason and replacement requirement.
+
 ## Project purpose
 
 This repository contains firmware for a NodeMCU v2 / ESP8266 smart-home server. It:
