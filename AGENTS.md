@@ -2,7 +2,25 @@
 
 ## Shared engineering standard
 
-Follow [TECHNICAL_CONTEXT.md](TECHNICAL_CONTEXT.md), version 1.0.0, for shared code style, architecture, testing, README, and workflow requirements.
+Follow the latest [TECHNICAL_CONTEXT.md from engineering-standards](https://github.com/vgrugor/engineering-standards/blob/master/TECHNICAL_CONTEXT.md) for shared code style, architecture, testing, README, and workflow requirements.
+
+Before starting each new task:
+
+1. Resolve the current commit of the `master` branch in `vgrugor/engineering-standards`.
+2. Fetch and read the complete `TECHNICAL_CONTEXT.md` at that commit using an available GitHub connector or authenticated CLI. A link alone is not sufficient.
+3. Use that snapshot for the task and note its standard version and commit. Fetch again if the user requests a refresh or says the standard has changed; do not poll during ordinary follow-up messages.
+
+With GitHub CLI, the read-only retrieval commands are:
+
+```sh
+standards_commit=$(gh api repos/vgrugor/engineering-standards/commits/master --jq .sha) &&
+gh api "repos/vgrugor/engineering-standards/contents/TECHNICAL_CONTEXT.md?ref=${standards_commit}" \
+    -H 'Accept: application/vnd.github.raw+json'
+```
+
+Respect the environment's network and approval rules. If retrieval fails, report that the latest standard could not be verified and use the local [TECHNICAL_CONTEXT.md](TECHNICAL_CONTEXT.md) only as an explicitly identified offline fallback (currently version 1.0.0). Never claim the fallback is current without checking GitHub. Do not overwrite the tracked local copy as a side effect of fetching.
+
+This project adopts the latest remote version at task start rather than pinning a standard version in this file. The local copy is an offline snapshot; this is the project's documented exception to the shared standard's version-recording and distribution policy.
 
 The sections below provide project-specific instructions and runtime contracts. Any exception to the shared standard must be documented explicitly with its reason and replacement requirement.
 
