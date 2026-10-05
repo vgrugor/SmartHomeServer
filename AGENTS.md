@@ -1,5 +1,29 @@
 # SmartHomeServer agent guide
 
+## Shared engineering standard
+
+Follow the latest [TECHNICAL_CONTEXT.md from engineering-standards](https://github.com/vgrugor/engineering-standards/blob/master/TECHNICAL_CONTEXT.md) for shared code style, architecture, testing, README, and workflow requirements.
+
+Before starting each new task:
+
+1. Resolve the current commit of the `master` branch in `vgrugor/engineering-standards`.
+2. Fetch and read the complete `TECHNICAL_CONTEXT.md` at that commit using an available GitHub connector or authenticated CLI. A link alone is not sufficient.
+3. Use that snapshot for the task and note its standard version and commit. Fetch again if the user requests a refresh or says the standard has changed; do not poll during ordinary follow-up messages.
+
+With GitHub CLI, the read-only retrieval commands are:
+
+```sh
+standards_commit=$(gh api repos/vgrugor/engineering-standards/commits/master --jq .sha) &&
+gh api "repos/vgrugor/engineering-standards/contents/TECHNICAL_CONTEXT.md?ref=${standards_commit}" \
+    -H 'Accept: application/vnd.github.raw+json'
+```
+
+Respect the environment's network and approval rules. If retrieval fails, report that the latest standard could not be verified and use the local [TECHNICAL_CONTEXT.md](TECHNICAL_CONTEXT.md) only as an explicitly identified offline fallback (currently version 1.0.0). Never claim the fallback is current without checking GitHub. Do not overwrite the tracked local copy as a side effect of fetching.
+
+This project adopts the latest remote version at task start rather than pinning a standard version in this file. The local copy is an offline snapshot; this is the project's documented exception to the shared standard's version-recording and distribution policy.
+
+The sections below provide project-specific instructions and runtime contracts. Any exception to the shared standard must be documented explicitly with its reason and replacement requirement.
+
 ## Project purpose
 
 This repository contains firmware for a NodeMCU v2 / ESP8266 smart-home server. It:
@@ -8,6 +32,8 @@ This repository contains firmware for a NodeMCU v2 / ESP8266 smart-home server. 
 - serves a dashboard from LittleFS;
 - accepts sensor updates over HTTP;
 - pushes the current sensor state to browsers over WebSocket;
+- shows fresh temperatures and shower readings on a two-page portrait 2.8-inch ST7789V display;
+- sends a daily indoor/outdoor temperature report to Telegram;
 - reports lifecycle events through LED, buzzer, serial, and WebSocket observers;
 - supports Arduino OTA updates.
 
@@ -23,6 +49,7 @@ The project is built with PlatformIO. The `nodemcuv2` environment builds Arduino
 - `include/infrastructure/` and `src/infrastructure/` contain ESP8266 network/clock adapters, LittleFS, OTA, WebSocket, and actuator adapters.
 - `infrastructure/reporting/` and `infrastructure/time/` provide EEPROM, HTTPS, and Kyiv local-time adapters.
 - `include/presentation/` and `src/presentation/` contain HTTP routes and event observers.
+- `include/application/display/` and `src/application/display/` contain the device-independent display rotation controller; `infrastructure/display/` renders it on the ST7789V hardware.
 - `data/` is the LittleFS web application deployed separately from firmware.
 - `test/` contains PlatformIO native tests for device-independent firmware logic.
 - `tests/browser.cjs` exercises the LittleFS dashboard contract in a headless Chromium browser.
@@ -77,7 +104,8 @@ If `pio` is unavailable, report that verification limitation rather than install
 5. Each successful operation emits saved-value events and exactly one `WEB_SOCKET_NOTIFY_CLIENT` event.
 6. `WsDataTransformer` serializes all six dashboard values as two-decimal strings using the DOM IDs `sliderValue1` through `sliderValue6`. It also sends each reading's age in whole minutes as `sliderValueNAgeMinutes`, or `null` when that reading has never been updated.
 7. The dashboard connects to `/ws`, sends the exact command `getValues`, updates elements whose IDs match value keys, and refreshes the human-readable update ages locally once per minute.
-8. The daily Telegram report sends indoor and outdoor temperatures at or after 15:00 Europe/Kyiv, once per local date after both readings and NTP time are available. It persists the confirmed date in EEPROM, not LittleFS, and retries failed sends every five minutes.
+8. The local TFT display shows indoor/outdoor temperatures together on the first portrait page and all four shower readings on the second. It advances every five seconds without blocking the main loop when both pages have fresh data. A page with no fresh readings is skipped; the shower page requires all four fresh values. Stale values remain in the web dashboard.
+9. The daily Telegram report sends indoor and outdoor temperatures at or after 15:00 Europe/Kyiv, once per local date after both readings and NTP time are available. It persists the confirmed date in EEPROM, not LittleFS, and retries failed sends every five minutes.
 
 `EventNotifier` dispatches synchronously, rejects null and duplicate observer registrations, and does not own observers. Event message pointers are valid only for the duration of each `Observer::update()` call.
 

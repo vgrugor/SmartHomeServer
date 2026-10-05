@@ -10,6 +10,7 @@ Firmware for a NodeMCU v2 / ESP8266 home controller. The controller receives ind
 - sensor updates over HTTP;
 - real-time browser synchronization over WebSocket;
 - last-update age for every displayed parameter;
+- a two-page portrait dashboard on a 2.8-inch ST7789V TFT;
 - LED, buzzer, Serial, and WebSocket event notifications;
 - Arduino OTA updates for firmware and LittleFS;
 - a daily indoor/outdoor temperature report through a Telegram bot;
@@ -54,7 +55,7 @@ See `AGENTS.md` for detailed architectural contracts and instructions for coding
 
    - Wi-Fi name and password;
    - controller IP address, gateway, and subnet;
-   - Arduino OTA hostname and password.
+   - Arduino OTA hostname and password;
    - Telegram bot token and destination chat ID for the daily report.
 
 `src/config/Secrets.cpp` is ignored by Git. Never commit real credentials or add them to CI or tracked configuration examples.
@@ -166,3 +167,22 @@ OTA_PASSWORD='your_password' pio run -e nodemcuv2 -t uploadfs
 ```
 
 Changes under `src/` or `include/` require a firmware upload. Changes under `data/` require a separate LittleFS upload.
+
+## Local ST7789V display
+
+The firmware supports the 2.8-inch 240×320 SPI ST7789V module in portrait orientation. The first page shows indoor temperature above outdoor temperature, marked with a house and a sun icon. The second page shows shower water temperature, water volume, battery voltage, and battery percentage. The pages alternate every five seconds when both are available. A reading is fresh for less than one hour; stale or missing temperatures appear as dashes rather than values, and the shower page is shown only when all four shower readings are fresh. If only one page is available, it stays on screen. If neither page is available, the display shows `NO FRESH DATA`. Stale values remain available in the web dashboard.
+
+Connect the display as follows:
+
+| Display pin | NodeMCU pin | Purpose |
+| --- | --- | --- |
+| `SCL` | `D5 / GPIO14` | Hardware SPI clock |
+| `SDA` | `D7 / GPIO13` | Hardware SPI MOSI |
+| `CS` | `D8 / GPIO15` | Chip select |
+| `DC` | `D2 / GPIO4` | Data/command selection |
+| `RST` | NodeMCU `RST` | Shared hardware reset |
+| `BL` | `3.3V` | Always-on backlight |
+| `VCC` | `3.3V` or `5V` | Follow the module PCB marking |
+| `GND` | `GND` | Common ground |
+
+To free the hardware SPI pins, the external status LED is connected to `D1 / GPIO5` and the buzzer to `D0 / GPIO16`. Rewire both components before installing this firmware. Do not upload the firmware to hardware that still uses the previous `D6` and `D7` actuator wiring.
