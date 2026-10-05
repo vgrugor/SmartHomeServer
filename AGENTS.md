@@ -121,7 +121,7 @@ Public HTTP routes currently include:
 - `POST /outdoor/temperature`
 - `GET /shower/update`
 - `POST /shower/update`
-- `GET /telegram/report/status` (confirmed report date and storage state; no credentials)
+- `GET /telegram/report/status` (confirmed report date, uptime, last send attempt, transport/TLS diagnostics, and storage state; no credentials)
 - WebSocket `/ws`
 
 The query-parameter names are configuration constants declared in `include/config/DeviceConfig.h`. When changing a route or JSON key, update the C++ handler/transformer and the browser code together.

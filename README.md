@@ -138,7 +138,20 @@ The bot connection uses HTTPS certificate validation. Its trust anchor is in `in
 
 Telegram's `sendMessage` API does not provide a caller-supplied idempotency key. A power loss after Telegram accepts a message but before the EEPROM commit, or an ambiguous network timeout after acceptance, can therefore still cause a duplicate. The firmware prevents repeats after a confirmed, persisted send, but cannot guarantee exactly-once delivery across those failure windows.
 
-`GET /telegram/report/status` returns `lastSentDate` (a `YYYYMMDD` integer, or `0` if none), storage readiness, local-time validity, reading availability, last send attempt result, and a transport status code. It exposes no bot credentials or chat ID and can be used to verify that a confirmed delivery was persisted. A negative transport code indicates a local connection/setup error; HTTP `200` plus `lastAttemptSucceeded: true` indicates Telegram accepted the message.
+`GET /telegram/report/status` returns `lastSentDate` (a `YYYYMMDD` integer, or `0` if none),
+storage readiness, local-time validity, reading availability, last send attempt result, and a
+transport status code. It also returns `uptimeMs`, `lastAttemptUptimeMs` (`null` before the first
+send attempt), `resetReason`, current free heap, and the largest free heap block. Uptime values
+are ESP8266 `millis()` readings and wrap after about 49.7 days. The attempt uptime records the
+start of the last Telegram send, not an EEPROM-save retry.
+
+`lastTlsErrorCode` is the BearSSL error from the last failed connection (`0` if none);
+`lastTlsError` is its text or `null` when BearSSL did not record an error. A transport code of
+`-1` means connection failed, but a null TLS error does not distinguish DNS, TCP, and timeout
+failures. These diagnostics are reset by a reboot and replaced on the next send attempt. The
+endpoint exposes no bot credentials or chat ID and can be used to verify that a confirmed
+delivery was persisted. HTTP `200` plus `lastAttemptSucceeded: true` indicates Telegram accepted
+the message. `readingsReady` means both temperatures exist in memory; it does not check their age.
 
 ## Uploading to a device
 

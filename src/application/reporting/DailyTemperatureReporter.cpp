@@ -13,6 +13,7 @@ DailyTemperatureReporter::DailyTemperatureReporter(
     store(store),
     lastSentDate(0),
     lastAttemptAtMs(0),
+    lastSendAttemptAtMs(0),
     ready(false),
     hasAttempted(false),
     pendingSave(false),
@@ -62,6 +63,22 @@ int DailyTemperatureReporter::getLastTransportCode() const {
     return this->sender.lastTransportCode();
 }
 
+int DailyTemperatureReporter::getLastTlsErrorCode() const {
+    return this->sender.lastTlsErrorCode();
+}
+
+const char* DailyTemperatureReporter::getLastTlsErrorText() const {
+    return this->sender.lastTlsErrorText();
+}
+
+uint32_t DailyTemperatureReporter::getUptimeMs() const {
+    return this->clock.now();
+}
+
+uint32_t DailyTemperatureReporter::getLastSendAttemptUptimeMs() const {
+    return this->lastSendAttemptAtMs;
+}
+
 void DailyTemperatureReporter::update(bool networkConnected) {
     if (!this->ready) {
         return;
@@ -97,6 +114,7 @@ void DailyTemperatureReporter::update(bool networkConnected) {
     }
 
     this->lastAttemptAtMs = nowMs;
+    this->lastSendAttemptAtMs = nowMs;
     this->hasAttempted = true;
 
     this->lastAttemptDate = today;

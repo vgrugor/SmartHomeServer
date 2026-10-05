@@ -1,5 +1,32 @@
 #include "presentation/WebServer.h"
+
 #include <cstdlib>
+#include <cstring>
+
+namespace {
+    String jsonString(const char* value) {
+        if (value == nullptr) {
+            return "null";
+        }
+
+        String encoded;
+        encoded.reserve(strlen(value) + 2);
+        encoded += '"';
+        for (const unsigned char* cursor =
+                 reinterpret_cast<const unsigned char*>(value); *cursor; cursor++) {
+            if (*cursor == '"' || *cursor == '\\') {
+                encoded += '\\';
+                encoded += static_cast<char>(*cursor);
+            } else if (*cursor < 0x20 || *cursor > 0x7E) {
+                encoded += '?';
+            } else {
+                encoded += static_cast<char>(*cursor);
+            }
+        }
+        encoded += '"';
+        return encoded;
+    }
+}
 
 WebServer::WebServer(
     WebSocket& webSocket,
@@ -50,6 +77,7 @@ void WebServer::begin() {
     server.on("/telegram/report/status", HTTP_GET, [this](AsyncWebServerRequest* request) {
         LocalDateTime localNow = {};
         const bool timeValid = this->dailyTemperatureReporter.getLocalNow(localNow);
+        const bool hasAttempt = this->dailyTemperatureReporter.hasAttemptedSend();
         const String body = String("{\"lastSentDate\":")
             + this->dailyTemperatureReporter.getLastSentDate()
             + ",\"ready\":"
@@ -70,6 +98,16 @@ void WebServer::begin() {
             + (this->dailyTemperatureReporter.lastAttemptSucceeded() ? "true" : "false")
             + ",\"lastTransportCode\":"
             + this->dailyTemperatureReporter.getLastTransportCode()
+            + ",\"uptimeMs\":"
+            + this->dailyTemperatureReporter.getUptimeMs()
+            + ",\"lastAttemptUptimeMs\":"
+            + (hasAttempt
+                ? String(this->dailyTemperatureReporter.getLastSendAttemptUptimeMs())
+                : String("null"))
+            + ",\"lastTlsErrorCode\":"
+            + this->dailyTemperatureReporter.getLastTlsErrorCode()
+            + ",\"lastTlsError\":"
+            + jsonString(this->dailyTemperatureReporter.getLastTlsErrorText())
             + ",\"resetReason\":"
             + ESP.getResetInfoPtr()->reason
             + ",\"freeHeap\":"

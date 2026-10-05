@@ -30,6 +30,9 @@ class FakeSender : public TemperatureMessageSender {
         int sentMinute = -1;
         float house = 0;
         float outdoor = 0;
+        int transportCode = -1;
+        int tlsErrorCode = 0;
+        const char* tlsErrorText = nullptr;
 
         bool send(int dateKey, int hour, int minute, float houseC, float outdoorC) override {
             calls++;
@@ -40,6 +43,10 @@ class FakeSender : public TemperatureMessageSender {
             outdoor = outdoorC;
             return succeeds;
         }
+
+        int lastTransportCode() const override { return transportCode; }
+        int lastTlsErrorCode() const override { return tlsErrorCode; }
+        const char* lastTlsErrorText() const override { return tlsErrorText; }
 };
 
 class FakeStore : public SentDateStore {
@@ -167,16 +174,52 @@ void test_failed_send_retries_after_five_minutes() {
     TEST_ASSERT_EQUAL_INT(20260925, f.store.date);
 }
 
+void test_reports_uptime_attempt_time_and_transport_diagnostics() {
+    Fixture f;
+    f.clock.milliseconds = 1234;
+    TEST_ASSERT_EQUAL_UINT32(1234, f.reporter.getUptimeMs());
+    TEST_ASSERT_FALSE(f.reporter.hasAttemptedSend());
+
+    f.time.current.hour = 15;
+    f.sender.succeeds = false;
+    f.sender.tlsErrorCode = 62;
+    f.sender.tlsErrorText = "certificate verification failed";
+    f.reporter.update(true);
+
+    TEST_ASSERT_TRUE(f.reporter.hasAttemptedSend());
+    TEST_ASSERT_EQUAL_UINT32(1234, f.reporter.getLastSendAttemptUptimeMs());
+    TEST_ASSERT_EQUAL_INT(-1, f.reporter.getLastTransportCode());
+    TEST_ASSERT_EQUAL_INT(62, f.reporter.getLastTlsErrorCode());
+    TEST_ASSERT_EQUAL_STRING(
+        "certificate verification failed", f.reporter.getLastTlsErrorText()
+    );
+
+    f.clock.milliseconds = 301234;
+    f.sender.succeeds = true;
+    f.sender.transportCode = 200;
+    f.sender.tlsErrorCode = 0;
+    f.sender.tlsErrorText = nullptr;
+    f.reporter.update(true);
+
+    TEST_ASSERT_EQUAL_UINT32(301234, f.reporter.getUptimeMs());
+    TEST_ASSERT_EQUAL_UINT32(301234, f.reporter.getLastSendAttemptUptimeMs());
+    TEST_ASSERT_EQUAL_INT(200, f.reporter.getLastTransportCode());
+    TEST_ASSERT_EQUAL_INT(0, f.reporter.getLastTlsErrorCode());
+    TEST_ASSERT_NULL(f.reporter.getLastTlsErrorText());
+}
+
 void test_failed_persistence_never_resends_during_this_boot() {
     Fixture f;
     f.time.current.hour = 15;
     f.store.saves = false;
+    f.clock.milliseconds = 1000;
     f.reporter.update(true);
     TEST_ASSERT_EQUAL_INT(1, f.sender.calls);
     TEST_ASSERT_EQUAL_INT(1, f.store.saveCalls);
     TEST_ASSERT_TRUE(f.reporter.hasPendingSave());
+    TEST_ASSERT_EQUAL_UINT32(1000, f.reporter.getLastSendAttemptUptimeMs());
 
-    f.clock.milliseconds = 300000;
+    f.clock.milliseconds = 301000;
     f.store.saves = true;
     f.reporter.update(true);
     f.reporter.update(true);
@@ -184,6 +227,7 @@ void test_failed_persistence_never_resends_during_this_boot() {
     TEST_ASSERT_EQUAL_INT(2, f.store.saveCalls);
     TEST_ASSERT_EQUAL_INT(20260925, f.store.date);
     TEST_ASSERT_FALSE(f.reporter.hasPendingSave());
+    TEST_ASSERT_EQUAL_UINT32(1000, f.reporter.getLastSendAttemptUptimeMs());
 }
 
 void test_unreadable_state_disables_sending_to_avoid_duplicates() {
@@ -230,6 +274,7 @@ int main(int, char**) {
     RUN_TEST(test_persisted_day_blocks_duplicate_after_restart);
     RUN_TEST(test_waits_for_valid_local_time_and_both_readings);
     RUN_TEST(test_failed_send_retries_after_five_minutes);
+    RUN_TEST(test_reports_uptime_attempt_time_and_transport_diagnostics);
     RUN_TEST(test_failed_persistence_never_resends_during_this_boot);
     RUN_TEST(test_unreadable_state_disables_sending_to_avoid_duplicates);
     RUN_TEST(test_retry_interval_is_wrap_safe);

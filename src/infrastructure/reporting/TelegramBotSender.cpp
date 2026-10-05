@@ -53,15 +53,26 @@ namespace {
 }
 
 TelegramBotSender::TelegramBotSender(const char* token, const char* chatId)
-    : token(token), chatId(chatId), transportCode(0) {}
+    : token(token), chatId(chatId), transportCode(0), tlsErrorCode(0), tlsErrorText{} {}
 
 int TelegramBotSender::lastTransportCode() const {
     return this->transportCode;
 }
 
+int TelegramBotSender::lastTlsErrorCode() const {
+    return this->tlsErrorCode;
+}
+
+const char* TelegramBotSender::lastTlsErrorText() const {
+    return this->tlsErrorCode == 0 ? nullptr : this->tlsErrorText;
+}
+
 bool TelegramBotSender::send(
     int dateKey, int hour, int minute, float houseC, float outdoorC
 ) {
+    this->tlsErrorCode = 0;
+    this->tlsErrorText[0] = '\0';
+
     if (this->token == nullptr || this->token[0] == '\0'
         || this->chatId == nullptr || this->chatId[0] == '\0') {
         this->transportCode = -100;
@@ -96,6 +107,13 @@ bool TelegramBotSender::send(
         + "&text=" + urlEncode(text);
     const int status = request.POST(body);
     this->transportCode = status;
+    if (status < 0) {
+        // HTTPClient reports all connection-stage failures as -1. Keep the
+        // underlying BearSSL error when one was recorded by this client.
+        this->tlsErrorCode = client.getLastSSLError(
+            this->tlsErrorText, sizeof(this->tlsErrorText)
+        );
+    }
     const bool sent = status == HTTP_CODE_OK && responseIsOk(request.getString());
     request.end();
     return sent;

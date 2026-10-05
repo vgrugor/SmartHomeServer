@@ -11,6 +11,8 @@ class TemperatureMessageSender {
         virtual ~TemperatureMessageSender() = default;
         virtual bool send(int dateKey, int hour, int minute, float houseC, float outdoorC) = 0;
         virtual int lastTransportCode() const { return 0; }
+        virtual int lastTlsErrorCode() const { return 0; }
+        virtual const char* lastTlsErrorText() const { return nullptr; }
 };
 
 class SentDateStore {
@@ -41,6 +43,10 @@ class DailyTemperatureReporter {
         bool getLocalNow(LocalDateTime& result) const;
         bool hasBothReadings() const;
         int getLastTransportCode() const;
+        int getLastTlsErrorCode() const;
+        const char* getLastTlsErrorText() const;
+        uint32_t getUptimeMs() const;
+        uint32_t getLastSendAttemptUptimeMs() const;
 
     private:
         static const uint32_t RETRY_INTERVAL_MS = 5UL * 60UL * 1000UL;
@@ -52,6 +58,7 @@ class DailyTemperatureReporter {
         SentDateStore& store;
         int lastSentDate;
         uint32_t lastAttemptAtMs;
+        uint32_t lastSendAttemptAtMs;
         bool ready;
         bool hasAttempted;
         bool pendingSave;
